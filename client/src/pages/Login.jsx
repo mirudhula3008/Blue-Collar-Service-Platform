@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import FormField from '../components/FormField';
 import { homePathFor, useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { errorMessage } from '../api/client';
 
 export default function Login() {
   const { user, login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
@@ -22,7 +24,7 @@ export default function Login() {
       const loggedIn = await login(form.email, form.password);
       navigate(location.state?.from || homePathFor(loggedIn.role), { replace: true });
     } catch (err) {
-      setError(errorMessage(err, 'Could not log in. Please try again.'));
+      setError(errorMessage(err, t('auth.errors.loginFailed')));
       setSubmitting(false);
     }
   };
@@ -32,13 +34,13 @@ export default function Login() {
   return (
     <div className="mx-auto max-w-md px-4 py-12">
       <div className="card p-6 sm:p-8">
-        <h1 className="font-display text-3xl sm:text-4xl text-navy">Welcome back</h1>
-        <p className="mt-1 text-sm text-slate-500">Log in to your customer, worker or admin account.</p>
+        <h1 className="font-display text-3xl text-navy sm:text-4xl">{t('auth.loginTitle')}</h1>
+        <p className="mt-1 text-sm text-slate-500">{t('auth.loginSubtitle')}</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <FormField label="Email" type="email" autoComplete="email" value={form.email} onChange={set('email')} required />
+          <FormField label={t('auth.email')} type="email" autoComplete="email" value={form.email} onChange={set('email')} required />
           <FormField
-            label="Password"
+            label={t('auth.password')}
             type="password"
             autoComplete="current-password"
             value={form.password}
@@ -46,19 +48,15 @@ export default function Login() {
             required
           />
           {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn btn-primary w-full py-3"
-          >
-            {submitting ? 'Logging in…' : 'Log in'}
+          <button type="submit" disabled={submitting} className="btn btn-primary w-full py-3">
+            {submitting ? t('auth.loggingIn') : t('auth.loginBtn')}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-500">
-          New here?{' '}
+          {t('auth.noAccount')}{' '}
           <Link to="/register" className="font-medium text-blue-600 hover:underline">
-            Create an account
+            {t('auth.createOne')}
           </Link>
         </p>
       </div>

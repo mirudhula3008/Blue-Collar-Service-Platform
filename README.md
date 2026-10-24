@@ -78,6 +78,19 @@ Workers who aren't active are hidden from search and can't be booked.
 | `GET /api/admin/dashboard` · `/workers` · `/workers/:id` · `/customers` · `/bookings` | Admin only |
 | `PATCH /api/admin/workers/:id/status` · `GET /api/admin/workers/:id/status-history` | `{ status, reason, evidence? }` |
 
+## Languages
+
+The app supports English, Tamil (தமிழ்), Hindi (हिन्दी) and Bengali (বাংলা). Pick a language with the
+🌐 selector in the navbar. The choice is saved in the browser and, for logged-in users, to their profile
+(`PATCH /api/users/language`), so it follows them to other devices.
+
+- Translations live in `client/src/locales/{en,ta,hi,bn}.json`, all with the same keys.
+- Components call `t('section.key')` from `useLanguage()`. `t('payment.payAmount', { amount })` fills
+  `{{amount}}`. Missing keys fall back to English.
+- Translated so far: navbar, landing, login, register, customer dashboard, worker list and map, filters,
+  worker profile, payment, and booking status badges. Other pages still show English.
+- Messages from the server (for example "Invalid email or password") are still in English.
+
 ## Project structure
 
 ```

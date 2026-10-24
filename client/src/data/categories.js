@@ -6,3 +6,5 @@ export const CATEGORIES = [
   { id: 'painting', name: 'Painting', icon: '🎨' },
   { id: 'cleaning', name: 'Cleaning', icon: '🧹' },
 ];
+
+export const categoryIds = CATEGORIES.map((c) => c.id);

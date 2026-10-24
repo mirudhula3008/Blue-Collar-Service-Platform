@@ -4,16 +4,18 @@ import FormField from '../components/FormField';
 import LocationPicker from '../components/LocationPicker';
 import ServicesEditor, { cleanServices } from '../components/ServicesEditor';
 import { homePathFor, useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { errorMessage } from '../api/client';
 import { CATEGORIES } from '../data/categories';
 
 const ROLES = [
-  { id: 'customer', icon: '🏠', title: 'I need a service', text: 'Find and book workers near you' },
-  { id: 'worker', icon: '🧰', title: 'I offer services', text: 'Get bookings from nearby customers' },
+  { id: 'customer', icon: '🏠', title: 'auth.needService', text: 'auth.needServiceText' },
+  { id: 'worker', icon: '🧰', title: 'auth.offerService', text: 'auth.offerServiceText' },
 ];
 
 export default function Register() {
   const { user, register } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [params] = useSearchParams();
 
@@ -43,12 +45,12 @@ export default function Register() {
     setForm({ ...form, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
 
   const validate = () => {
-    if (form.password.length < 6) return 'Password must be at least 6 characters';
-    if (form.password !== form.confirmPassword) return 'Passwords do not match';
+    if (form.password.length < 6) return t('auth.errors.passwordShort');
+    if (form.password !== form.confirmPassword) return t('auth.errors.passwordMismatch');
     if (role === 'worker') {
-      if (!form.serviceCategory) return 'Please choose your service category';
-      if (!location) return 'Please share your location so customers can find you';
-      if (!idProof) return 'Please upload an ID proof';
+      if (!form.serviceCategory) return t('auth.errors.chooseCategory');
+      if (!location) return t('auth.errors.shareLocation');
+      if (!idProof) return t('auth.errors.uploadId');
     }
     return null;
   };
@@ -84,7 +86,7 @@ export default function Register() {
       const created = await register(data);
       navigate(created.role === 'worker' ? '/profile' : homePathFor(created.role), { replace: true });
     } catch (err) {
-      setError(errorMessage(err, 'Could not create your account. Please try again.'));
+      setError(errorMessage(err, t('auth.errors.registerFailed')));
       setSubmitting(false);
     }
   };
@@ -92,9 +94,10 @@ export default function Register() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <div className="card p-6 sm:p-8">
-        <h1 className="font-display text-3xl sm:text-4xl text-navy">Create your account</h1>
+        <h1 className="font-display text-3xl text-navy sm:text-4xl">{t('auth.registerTitle')}</h1>
+        <p className="mt-1 text-sm text-slate-500">{t('auth.registerSubtitle')}</p>
 
-        <div className="mt-6 grid grid-cols-2 gap-3" role="radiogroup" aria-label="Account type">
+        <div className="mt-6 grid grid-cols-2 gap-3" role="radiogroup" aria-label={t('auth.role')}>
           {ROLES.map((r) => (
             <button
               key={r.id}
@@ -109,18 +112,18 @@ export default function Register() {
               <span className="text-2xl" aria-hidden="true">
                 {r.icon}
               </span>
-              <p className="mt-1 font-semibold text-slate-900">{r.title}</p>
-              <p className="text-xs text-slate-500">{r.text}</p>
+              <p className="mt-1 font-semibold text-slate-900">{t(r.title)}</p>
+              <p className="text-xs text-slate-500">{t(r.text)}</p>
             </button>
           ))}
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Full name" value={form.name} onChange={set('name')} autoComplete="name" required />
-            <FormField label="Phone" type="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" required />
+            <FormField label={t('auth.fullName')} value={form.name} onChange={set('name')} autoComplete="name" required />
+            <FormField label={t('auth.phone')} type="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" required />
             <FormField
-              label="Email"
+              label={t('auth.email')}
               type="email"
               value={form.email}
               onChange={set('email')}
@@ -129,16 +132,16 @@ export default function Register() {
               className="sm:col-span-2"
             />
             <FormField
-              label="Password"
+              label={t('auth.password')}
               type="password"
               value={form.password}
               onChange={set('password')}
               autoComplete="new-password"
-              hint="At least 6 characters"
+              hint={t('auth.passwordHint')}
               required
             />
             <FormField
-              label="Confirm password"
+              label={t('auth.confirmPassword')}
               type="password"
               value={form.confirmPassword}
               onChange={set('confirmPassword')}
@@ -146,10 +149,10 @@ export default function Register() {
               required
             />
             <FormField
-              label="Area / address"
+              label={t('auth.location')}
               value={form.address}
               onChange={set('address')}
-              placeholder="e.g. T. Nagar, Chennai"
+              placeholder={t('auth.addressPlaceholder')}
               className="sm:col-span-2"
             />
           </div>
@@ -158,18 +161,18 @@ export default function Register() {
 
           {role === 'worker' && (
             <div className="space-y-4 border-t border-slate-100 pt-4">
-              <h2 className="font-semibold text-slate-900">Work details</h2>
+              <h2 className="font-semibold text-slate-900">{t('auth.workDetails')}</h2>
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormField label="Service category" as="select" value={form.serviceCategory} onChange={set('serviceCategory')} required>
-                  <option value="">Choose…</option>
+                <FormField label={t('auth.category')} as="select" value={form.serviceCategory} onChange={set('serviceCategory')} required>
+                  <option value="">{t('auth.choose')}</option>
                   {CATEGORIES.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.icon} {c.name}
+                      {c.icon} {t(`services.${c.id}`)}
                     </option>
                   ))}
                 </FormField>
                 <FormField
-                  label="Years of experience"
+                  label={t('auth.experience')}
                   type="number"
                   min="0"
                   max="60"
@@ -178,59 +181,55 @@ export default function Register() {
                 />
               </div>
               <FormField
-                label="About you"
+                label={t('auth.about')}
                 as="textarea"
                 rows={3}
                 value={form.bio}
                 onChange={set('bio')}
-                placeholder="What kind of jobs do you do best?"
+                placeholder={t('auth.aboutPlaceholder')}
               />
 
               <div>
-                <span className="text-sm font-medium text-slate-700">Services and prices</span>
-                <p className="mb-2 text-xs text-slate-400">You can add or change these later from your profile.</p>
+                <span className="text-sm font-medium text-slate-700">{t('auth.servicesPrices')}</span>
+                <p className="mb-2 text-xs text-slate-400">{t('auth.servicesLater')}</p>
                 <ServicesEditor services={services} onChange={setServices} />
               </div>
 
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input type="checkbox" checked={form.isNegotiable} onChange={set('isNegotiable')} className="h-4 w-4 accent-blue-600" />
-                My prices are negotiable
+                {t('auth.negotiable')}
               </label>
 
               <FileInput
-                label="ID proof (Aadhaar, PAN, driving licence…)"
+                label={t('auth.idProof')}
                 accept="image/jpeg,image/png,image/webp,application/pdf"
                 file={idProof}
                 onChange={setIdProof}
-                hint="JPG, PNG, WEBP or PDF, up to 5 MB. Used only to verify your identity."
+                hint={t('auth.idProofHint')}
                 required
               />
             </div>
           )}
 
           <FileInput
-            label="Profile photo (optional)"
+            label={t('auth.profilePhoto')}
             accept="image/jpeg,image/png,image/webp"
             file={profilePhoto}
             onChange={setProfilePhoto}
-            hint="JPG, PNG or WEBP, up to 5 MB"
+            hint={t('auth.photoHint')}
           />
 
           {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn btn-primary w-full py-3"
-          >
-            {submitting ? 'Creating account…' : `Sign up as a ${role}`}
+          <button type="submit" disabled={submitting} className="btn btn-primary w-full py-3">
+            {submitting ? t('auth.creating') : t(role === 'worker' ? 'auth.signupWorker' : 'auth.signupCustomer')}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-500">
-          Already have an account?{' '}
+          {t('auth.hasAccount')}{' '}
           <Link to="/login" className="font-medium text-blue-600 hover:underline">
-            Log in
+            {t('nav.login')}
           </Link>
         </p>
       </div>
@@ -239,6 +238,7 @@ export default function Register() {
 }
 
 function FileInput({ label, accept, file, onChange, hint, required }) {
+  const { t } = useLanguage();
   return (
     <label className="block">
       <span className="text-sm font-medium text-slate-700">
@@ -250,7 +250,7 @@ function FileInput({ label, accept, file, onChange, hint, required }) {
         onChange={(e) => onChange(e.target.files[0] || null)}
         className="mt-1 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:font-medium file:text-blue-700 hover:file:bg-blue-100"
       />
-      <span className="mt-1 block text-xs text-slate-400">{file ? `Selected: ${file.name}` : hint}</span>
+      <span className="mt-1 block text-xs text-slate-400">{file ? t('auth.selectedFile', { name: file.name }) : hint}</span>
     </label>
   );
 }

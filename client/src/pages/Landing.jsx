@@ -1,31 +1,25 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, BadgeCheck, IndianRupee, MapPin, Star } from 'lucide-react';
-import CategoryIcon, { CATEGORY_META } from '../components/CategoryIcon';
+import CategoryIcon from '../components/CategoryIcon';
 import { homePathFor, useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { CATEGORIES } from '../data/categories';
 
-const PLURAL = {
-  plumbing: 'plumbers',
-  electrical: 'electricians',
-  carpentry: 'carpenters',
-  painting: 'painters',
-  cleaning: 'cleaners',
-};
-
 const STEPS = [
-  { Icon: MapPin, title: 'Share your location', text: 'We show verified workers closest to you first, on a map and in a list.' },
-  { Icon: IndianRupee, title: 'Compare clear prices', text: 'Every worker lists their service prices up front. Many are negotiable.' },
-  { Icon: Star, title: 'Book and review', text: 'Pick a time slot, get the job done, then rate the work for others.' },
+  { Icon: MapPin, title: 'landing.step1Title', text: 'landing.step1Text' },
+  { Icon: IndianRupee, title: 'landing.step2Title', text: 'landing.step2Text' },
+  { Icon: Star, title: 'landing.step3Title', text: 'landing.step3Text' },
 ];
 
 const TRUST = [
-  { Icon: BadgeCheck, label: 'ID-verified workers' },
-  { Icon: IndianRupee, label: 'Transparent pricing' },
-  { Icon: Star, label: 'Real customer reviews' },
+  { Icon: BadgeCheck, label: 'hero.trustVerified' },
+  { Icon: IndianRupee, label: 'hero.trustPricing' },
+  { Icon: Star, label: 'hero.trustReviews' },
 ];
 
 export default function Landing() {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <div>
@@ -35,27 +29,24 @@ export default function Landing() {
         <div className="pointer-events-none absolute -bottom-40 -left-24 h-80 w-80 rounded-full bg-amber-100/60 blur-3xl" aria-hidden="true" />
 
         <div className="relative mx-auto max-w-4xl px-4 py-16 text-center sm:py-24">
-          <p className="eyebrow">Hyperlocal · On-demand · Verified</p>
+          <p className="eyebrow">{t('hero.eyebrow')}</p>
           <h1 className="mt-4 font-display text-5xl leading-[1.05] text-navy sm:text-7xl">
-            Skilled hands, <em className="text-blue-600">trusted</em> work.
+            {t('hero.titleStart')} <em className="text-blue-600">{t('hero.titleEm')}</em> {t('hero.titleEnd')}
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-500">
-            Connect with verified plumbers, electricians, carpenters, painters and cleaners in your area. Transparent
-            pricing, real reviews, negotiable rates.
-          </p>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-500">{t('hero.subtitle')}</p>
 
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
             {user ? (
               <Link to={homePathFor(user.role)} className="btn btn-primary btn-lg">
-                Go to your dashboard <ArrowRight size={18} />
+                {t('hero.goToDashboard')} <ArrowRight size={18} />
               </Link>
             ) : (
               <>
                 <Link to="/dashboard" className="btn btn-primary btn-lg">
-                  Find a worker <ArrowRight size={18} />
+                  {t('hero.findWorker')} <ArrowRight size={18} />
                 </Link>
                 <Link to="/register?role=worker" className="btn btn-secondary btn-lg">
-                  Join as worker
+                  {t('hero.joinAsWorker')}
                 </Link>
               </>
             )}
@@ -63,9 +54,9 @@ export default function Landing() {
 
           {!user && (
             <p className="mt-5 text-sm text-slate-500">
-              Already have an account?{' '}
+              {t('hero.alreadyAccount')}{' '}
               <Link to="/login" className="font-semibold text-blue-600 hover:underline">
-                Log in
+                {t('nav.login')}
               </Link>
             </p>
           )}
@@ -73,7 +64,7 @@ export default function Landing() {
           <ul className="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-3">
             {TRUST.map(({ Icon, label }) => (
               <li key={label} className="caption flex items-center gap-2">
-                <Icon size={16} className="text-blue-600" /> {label}
+                <Icon size={16} className="text-blue-600" /> {t(label)}
               </li>
             ))}
           </ul>
@@ -83,17 +74,17 @@ export default function Landing() {
       {/* Services */}
       <section className="bg-slate-50">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
-          <p className="eyebrow text-center">Services available</p>
-          <h2 className="mt-3 text-center font-display text-4xl text-navy sm:text-5xl">Find workers near you</h2>
+          <p className="eyebrow text-center">{t('landing.servicesEyebrow')}</p>
+          <h2 className="mt-3 text-center font-display text-4xl text-navy sm:text-5xl">{t('landing.servicesTitle')}</h2>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {CATEGORIES.map((c) => (
               <Link key={c.id} to={`/workers?category=${c.id}`} className="card card-hover group flex flex-col p-6">
                 <CategoryIcon id={c.id} />
-                <h3 className="mt-5 text-lg font-semibold text-navy">{c.name}</h3>
-                <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate-500">{CATEGORY_META[c.id]?.blurb}</p>
+                <h3 className="mt-5 text-lg font-semibold text-navy">{t(`services.${c.id}`)}</h3>
+                <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate-500">{t(`services.desc.${c.id}`)}</p>
                 <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-blue-600">
-                  Find {PLURAL[c.id]} <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
+                  {t(`services.find.${c.id}`)} <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
                 </span>
               </Link>
             ))}
@@ -103,8 +94,8 @@ export default function Landing() {
 
       {/* How it works */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
-        <p className="eyebrow text-center">How it works</p>
-        <h2 className="mt-3 text-center font-display text-4xl text-navy sm:text-5xl">Three steps to a job well done</h2>
+        <p className="eyebrow text-center">{t('landing.howEyebrow')}</p>
+        <h2 className="mt-3 text-center font-display text-4xl text-navy sm:text-5xl">{t('landing.howTitle')}</h2>
         <div className="mt-10 grid gap-4 sm:grid-cols-3">
           {STEPS.map(({ Icon, title, text }, i) => (
             <div key={title} className="card p-6">
@@ -114,8 +105,8 @@ export default function Landing() {
                 </span>
                 <Icon size={20} className="text-blue-600" aria-hidden="true" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-navy">{title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{text}</p>
+              <h3 className="mt-4 text-lg font-semibold text-navy">{t(title)}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{t(text)}</p>
             </div>
           ))}
         </div>
@@ -126,13 +117,11 @@ export default function Landing() {
         <section className="px-4 pb-20">
           <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 rounded-3xl bg-navy px-8 py-10 sm:flex-row sm:items-center sm:px-12">
             <div>
-              <h2 className="font-display text-3xl text-white sm:text-4xl">Are you a skilled worker?</h2>
-              <p className="mt-2 max-w-lg text-slate-300">
-                Set your own prices, choose when you’re available, and get bookings from customers nearby.
-              </p>
+              <h2 className="font-display text-3xl text-white sm:text-4xl">{t('landing.ctaTitle')}</h2>
+              <p className="mt-2 max-w-lg text-slate-300">{t('landing.ctaText')}</p>
             </div>
             <Link to="/register?role=worker" className="btn btn-amber btn-lg flex-none">
-              Join as worker <ArrowRight size={18} />
+              {t('hero.joinAsWorker')} <ArrowRight size={18} />
             </Link>
           </div>
         </section>

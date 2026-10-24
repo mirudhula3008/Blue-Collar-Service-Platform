@@ -132,3 +132,16 @@
 .input:focus {
   box-shadow: 0 0 0 4px rgba(51, 102, 255, 0.15);
 }
+
+/* Indic languages: Instrument Serif has no Tamil/Devanagari/Bengali glyphs, so
+   display headings switch to the matching Noto Sans at a heavier weight, and
+   synthetic italics (which look broken in these scripts) are turned off. */
+html:not([lang='en']) .font-display {
+  font-family: 'DM Sans', 'Noto Sans Tamil', 'Noto Sans Devanagari', 'Noto Sans Bengali', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+html:not([lang='en']) em {
+  font-style: normal;
+}

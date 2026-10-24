@@ -1,3 +1,5 @@
+const User = require('../models/User');
+const { LANGUAGES } = require('../models/User');
 const { categoryIds } = require('../data/categories');
 const { storeFile } = require('../utils/storage');
 const { asyncHandler, httpError } = require('../utils/http');
@@ -62,4 +64,14 @@ const uploadProfilePhoto = asyncHandler(async (req, res) => {
   res.json(req.user);
 });
 
-module.exports = { getProfile, updateProfile, uploadIdProof, uploadProfilePhoto };
+
+// PATCH /api/users/language   { language: 'en' | 'ta' | 'hi' | 'bn' }
+// Atomic update so it never races with a concurrent profile save.
+const updateLanguage = asyncHandler(async (req, res) => {
+  const { language } = req.body;
+  if (!LANGUAGES.includes(language)) throw httpError(400, `Language must be one of: ${LANGUAGES.join(', ')}`);
+  await User.updateOne({ _id: req.user._id }, { preferredLanguage: language });
+  res.json({ preferredLanguage: language });
+});
+
+module.exports = { getProfile, updateProfile, uploadIdProof, uploadProfilePhoto, updateLanguage };

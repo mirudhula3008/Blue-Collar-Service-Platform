@@ -40,7 +40,8 @@ function distance(a, b) {
  * (watchPosition) and updates whenever it moves more than ~50 m.
  *
  * status: 'default' | 'locating' | 'live' | 'denied' | 'unsupported' | 'error'
- * Returns { coords, status, error, live, setLive }. `coords` is always usable.
+ * Returns { coords, status, error, live, setLive }. `coords` is always usable;
+ * `error` is a code ('denied' | 'error' | 'unsupported') for translated messages.
  */
 export default function useGeolocation() {
   const [live, setLiveState] = useState(readPref);
@@ -66,7 +67,7 @@ export default function useGeolocation() {
       writePref(false);
       setLiveState(false);
       setStatus('unsupported');
-      setError('Your browser does not support location access. Showing Chennai.');
+      setError('unsupported');
       return undefined;
     }
 
@@ -89,11 +90,7 @@ export default function useGeolocation() {
         setLiveState(false);
         setCoords(DEFAULT_LOCATION);
         setStatus(err.code === err.PERMISSION_DENIED ? 'denied' : 'error');
-        setError(
-          err.code === err.PERMISSION_DENIED
-            ? 'Location permission is blocked. Allow it in your browser’s site settings to use live location. Showing Chennai.'
-            : 'Could not get your live location. Showing Chennai.'
-        );
+        setError(err.code === err.PERMISSION_DENIED ? 'denied' : 'error');
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
     );

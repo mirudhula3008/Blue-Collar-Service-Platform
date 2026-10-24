@@ -14,6 +14,7 @@ const serviceSchema = new mongoose.Schema(
 );
 
 const ACCOUNT_STATUSES = ['active', 'suspended', 'blocked', 'under_review'];
+const LANGUAGES = ['en', 'ta', 'hi', 'bn'];
 
 const statusChangeSchema = new mongoose.Schema(
   {
@@ -42,6 +43,8 @@ const userSchema = new mongoose.Schema(
       coordinates: { type: [Number], default: undefined },
     },
     address: { type: String, default: '' },
+    // UI language. Unset until the user picks one, so their pre-login choice isn't overwritten.
+    preferredLanguage: { type: String, enum: LANGUAGES },
 
     // Worker-specific fields
     serviceCategory: { type: String },
@@ -87,3 +90,4 @@ userSchema.set('toJSON', {
 
 module.exports = mongoose.model('User', userSchema);
 module.exports.ACCOUNT_STATUSES = ACCOUNT_STATUSES;
+module.exports.LANGUAGES = LANGUAGES;

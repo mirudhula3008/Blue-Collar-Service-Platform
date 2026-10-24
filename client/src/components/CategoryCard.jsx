@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import CategoryIcon from './CategoryIcon';
+import { useLanguage } from '../context/LanguageContext';
 
 // Service category tile — blue line icon, glow ring on hover (theme guide §5).
 export default function CategoryCard({ category }) {
+  const { t } = useLanguage();
   return (
     <Link
       to={`/workers?category=${category.id}`}
@@ -10,8 +12,8 @@ export default function CategoryCard({ category }) {
     >
       <CategoryIcon id={category.id} size="lg" tinted={false} />
       <div>
-        <h3 className="font-semibold text-navy">{category.name}</h3>
-        <p className="mt-1 text-xs leading-relaxed text-slate-500">{category.description}</p>
+        <h3 className="font-semibold text-navy">{t(`services.${category.id}`)}</h3>
+        <p className="mt-1 text-xs leading-relaxed text-slate-500">{t(`services.desc.${category.id}`)}</p>
       </div>
     </Link>
   );

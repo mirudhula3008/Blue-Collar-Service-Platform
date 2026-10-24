@@ -1,36 +1,40 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { LogOut, Menu, X } from 'lucide-react';
+import LanguageSelector from './LanguageSelector';
 import { homePathFor, useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
-// Links per role.
+// Links per role (labels are translation keys).
 const LINKS = {
   customer: [
-    { to: '/dashboard', label: 'Services' },
-    { to: '/bookings', label: 'My bookings' },
-    { to: '/profile', label: 'Profile' },
+    { to: '/dashboard', label: 'nav.services' },
+    { to: '/bookings', label: 'nav.myBookings' },
+    { to: '/profile', label: 'nav.profile' },
   ],
   worker: [
-    { to: '/worker/dashboard', label: 'Requests' },
-    { to: '/worker/jobs', label: 'Jobs' },
-    { to: '/worker/earnings', label: 'Earnings' },
-    { to: '/worker/reviews', label: 'Reviews' },
-    { to: '/profile', label: 'Profile' },
+    { to: '/worker/dashboard', label: 'nav.requests' },
+    { to: '/worker/jobs', label: 'nav.jobs' },
+    { to: '/worker/earnings', label: 'nav.earnings' },
+    { to: '/worker/reviews', label: 'nav.reviews' },
+    { to: '/profile', label: 'nav.profile' },
   ],
   admin: [
-    { to: '/admin', label: 'Overview', end: true },
-    { to: '/admin/workers', label: 'Workers' },
-    { to: '/admin/bookings', label: 'Bookings' },
+    { to: '/admin', label: 'nav.overview', end: true },
+    { to: '/admin/workers', label: 'nav.workers' },
+    { to: '/admin/bookings', label: 'nav.bookings' },
   ],
 };
+const GUEST_LINKS = [{ to: '/dashboard', label: 'nav.findWorkers' }];
 
 const linkClass = ({ isActive }) =>
-  `block rounded-lg px-3 py-2 text-sm font-medium transition ${
+  `block whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition ${
     isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-navy'
   }`;
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, rememberLanguage } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
@@ -41,54 +45,62 @@ export default function Navbar() {
     navigate('/');
   };
 
-  const links = user ? LINKS[user.role] || [] : [{ to: '/dashboard', label: 'Find workers' }];
+  const links = user ? LINKS[user.role] || [] : GUEST_LINKS;
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        <Link to={user ? homePathFor(user.role) : '/'} className="text-xl font-bold tracking-tight" onClick={close}>
-          <span className="text-blue-600">Blue-Collar</span> <span className="text-navy">Services</span>
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4">
+        <Link to={user ? homePathFor(user.role) : '/'} className="truncate text-xl font-bold tracking-tight" onClick={close}>
+          <span className="text-blue-600">{t('app.nameFirst')}</span> <span className="text-navy">{t('app.nameSecond')}</span>
         </Link>
 
-        <button
-          type="button"
-          className="rounded-lg p-2 text-slate-600 hover:bg-slate-50 sm:hidden"
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Toggle menu"
-          aria-expanded={open}
-        >
-          {open ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        {/* Always-visible controls on small screens */}
+        <div className="flex items-center gap-1 lg:hidden">
+          <LanguageSelector onChange={rememberLanguage} />
+          <button
+            type="button"
+            className="rounded-lg p-2 text-slate-600 hover:bg-slate-50"
+            onClick={() => setOpen((o) => !o)}
+            aria-label={t('nav.toggleMenu')}
+            aria-expanded={open}
+          >
+            {open ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
 
         <nav
-          className={`${open ? 'flex' : 'hidden'} absolute left-0 right-0 top-16 flex-col gap-1 border-b border-slate-200 bg-white p-3 shadow-lift sm:static sm:flex sm:flex-row sm:items-center sm:gap-1 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none`}
+          className={`${open ? 'flex' : 'hidden'} absolute left-0 right-0 top-16 flex-col gap-1 border-b border-slate-200 bg-white p-3 shadow-lift lg:static lg:flex lg:flex-row lg:items-center lg:gap-1 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none`}
         >
           {links.map((l) => (
             <NavLink key={l.to} to={l.to} end={l.end} className={linkClass} onClick={close}>
-              {l.label}
+              {t(l.label)}
             </NavLink>
           ))}
 
+          <div className="hidden lg:ml-2 lg:block">
+            <LanguageSelector onChange={rememberLanguage} />
+          </div>
+
           {user ? (
-            <div className="mt-2 flex items-center gap-2 border-t border-slate-100 pt-3 sm:ml-3 sm:mt-0 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-sm font-semibold text-white">
+            <div className="mt-2 flex items-center gap-2 border-t border-slate-100 pt-3 lg:ml-2 lg:mt-0 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+              <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-sm font-semibold text-white">
                 {user.name.charAt(0).toUpperCase()}
               </span>
               <span className="text-sm leading-tight">
                 <span className="block font-semibold text-navy">{user.name.split(' ')[0]}</span>
-                <span className="block text-xs capitalize text-slate-500">{user.role}</span>
+                <span className="block text-xs text-slate-500">{t(`nav.roles.${user.role}`)}</span>
               </span>
-              <button type="button" onClick={handleLogout} className="btn btn-ghost btn-sm ml-auto sm:ml-1" title="Log out">
-                <LogOut size={16} /> <span className="sm:hidden lg:inline">Log out</span>
+              <button type="button" onClick={handleLogout} className="btn btn-ghost btn-sm ml-auto lg:ml-1" title={t('nav.logout')}>
+                <LogOut size={16} /> <span className="lg:hidden xl:inline">{t('nav.logout')}</span>
               </button>
             </div>
           ) : (
-            <div className="mt-2 flex items-center gap-2 border-t border-slate-100 pt-3 sm:ml-3 sm:mt-0 sm:border-0 sm:pt-0">
+            <div className="mt-2 flex items-center gap-2 border-t border-slate-100 pt-3 lg:ml-1 lg:mt-0 lg:border-0 lg:pt-0">
               <Link to="/login" onClick={close} className="btn btn-ghost btn-sm">
-                Log in
+                {t('nav.login')}
               </Link>
               <Link to="/register" onClick={close} className="btn btn-primary btn-sm">
-                Sign up
+                {t('nav.signup')}
               </Link>
             </div>
           )}

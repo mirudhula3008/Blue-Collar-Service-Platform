@@ -18,3 +18,5 @@ const uploadSingle = (url, field, file) => {
 export const uploadIdProof = (file) => uploadSingle('/upload/id-proof', 'idProof', file);
 
 export const uploadProfilePhoto = (file) => uploadSingle('/upload/profile-photo', 'profilePhoto', file);
+
+export const updateLanguage = (language) => api.patch('/users/language', { language }).then((r) => r.data);

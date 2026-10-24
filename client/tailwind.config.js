@@ -61,8 +61,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['"Instrument Serif"', 'ui-serif', 'Georgia', 'serif'],
+        // Indic fallbacks render Tamil, Hindi and Bengali text in the matching Noto Sans.
+        sans: ['"DM Sans"', '"Noto Sans Tamil"', '"Noto Sans Devanagari"', '"Noto Sans Bengali"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['"Instrument Serif"', '"Noto Sans Tamil"', '"Noto Sans Devanagari"', '"Noto Sans Bengali"', 'ui-serif', 'Georgia', 'serif'],
       },
       boxShadow: {
         card: '0 1px 2px rgba(27, 42, 74, 0.04), 0 2px 8px rgba(27, 42, 74, 0.05)',

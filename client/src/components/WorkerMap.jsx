@@ -5,7 +5,8 @@ import L from 'leaflet';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import { formatDistance, formatPriceRange } from '../utils/format';
+import { useLanguage } from '../context/LanguageContext';
+import { formatDistanceShort, formatPriceRange } from '../utils/format';
 
 // Bundlers break Leaflet's default icon URLs; point them at the imported assets.
 delete L.Icon.Default.prototype._getIconUrl;
@@ -40,6 +41,7 @@ function Recenter({ center, radiusKm }) {
  * center:  [lat, lng] of the customer (or of the worker when showUser is false)
  */
 export default function WorkerMap({ workers = [], center, radiusKm, highlightedId, showUser = true, className = 'h-80' }) {
+  const { t } = useLanguage();
   return (
     <div className={`overflow-hidden rounded-xl border border-slate-200 ${className}`}>
       <MapContainer center={center} zoom={13} scrollWheelZoom className="h-full w-full">
@@ -54,7 +56,7 @@ export default function WorkerMap({ workers = [], center, radiusKm, highlightedI
         )}
         {showUser && (
           <CircleMarker center={center} radius={8} pathOptions={{ color: '#fff', weight: 2, fillColor: '#2563eb', fillOpacity: 1 }}>
-            <Popup>You are here</Popup>
+            <Popup>{t('discovery.youAreHere')}</Popup>
           </CircleMarker>
         )}
 
@@ -72,10 +74,13 @@ export default function WorkerMap({ workers = [], center, radiusKm, highlightedI
                 <Popup>
                   <div className="space-y-0.5">
                     <p className="font-semibold">{w.name}</p>
-                    <p>★ {w.averageRating?.toFixed(1) || 'New'} · {formatDistance(w.distance)}</p>
-                    <p>{formatPriceRange(w.minPrice, w.maxPrice)}</p>
+                    <p>
+                      ★ {w.averageRating?.toFixed(1) || t('worker.new')}
+                      {w.distance != null && ` · ${formatDistanceShort(w.distance, t)}`}
+                    </p>
+                    <p>{w.minPrice == null ? t('worker.priceOnRequest') : formatPriceRange(w.minPrice, w.maxPrice)}</p>
                     <Link to={`/workers/${w._id}`} className="text-blue-600">
-                      View profile →
+                      {t('discovery.viewProfileLink')}
                     </Link>
                   </div>
                 </Popup>
