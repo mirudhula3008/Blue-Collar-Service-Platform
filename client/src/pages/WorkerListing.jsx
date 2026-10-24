@@ -62,7 +62,7 @@ export default function WorkerListing() {
       </Link>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">{categoryName} near you</h1>
+          <h1 className="font-display text-3xl sm:text-4xl text-navy">{categoryName} near you</h1>
           <LocationBanner {...location} onRetry={location.retry} />
         </div>
         <p className="text-sm text-slate-500">

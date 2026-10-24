@@ -2,11 +2,127 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-slate-50 text-slate-800;
+/* Blue-Collar Services design tokens (theme guide §10) */
+:root {
+  --navy: #1b2a4a;
+  --blue: #3366ff;
+  --blue-light: #5b8aff;
+  --blue-muted: #e8eeff;
+  --amber: #f5a623;
+  --amber-light: #ffeacc;
+  --green: #2aa876;
+  --green-light: #e3f5ee;
+  --bg: #fafbfd;
+  --bg-section: #f1f4f9;
+  --bg-card: #ffffff;
+  --fg: #1b2a4a;
+  --fg-muted: #5a6a85;
+  --border: #dfe4ed;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+}
+
+@layer base {
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    @apply font-sans antialiased;
+  }
+
+  ::selection {
+    background: var(--blue-muted);
+  }
+}
+
+@layer components {
+  /* Buttons (theme guide §3): primary, secondary, amber (booking), ghost */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition
+      focus:outline-none focus-visible:shadow-glow disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-sm {
+    @apply rounded-lg px-3.5 py-1.5 text-sm;
+  }
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+  .btn-primary {
+    @apply bg-blue-600 text-white shadow-sm hover:bg-blue-700;
+  }
+  .btn-secondary {
+    @apply border border-slate-200 bg-white text-slate-900 hover:border-blue-400 hover:text-blue-700;
+  }
+  .btn-amber {
+    @apply bg-amber-500 text-navy shadow-sm hover:bg-amber-600;
+  }
+  .btn-ghost {
+    @apply text-slate-500 hover:bg-slate-50 hover:text-slate-900;
+  }
+  .btn-danger {
+    @apply border border-rose-200 bg-white text-rose-700 hover:bg-rose-50;
+  }
+  .btn-success {
+    @apply bg-emerald-600 text-white shadow-sm hover:bg-emerald-700;
+  }
+
+  /* Badges & tags (theme guide §4) */
+  .badge {
+    @apply inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+  .badge-verified {
+    @apply bg-emerald-50 text-emerald-700;
+  }
+  .badge-available {
+    @apply bg-blue-50 text-blue-700;
+  }
+  .badge-busy {
+    @apply bg-slate-100 text-slate-500;
+  }
+  .badge-negotiable {
+    @apply bg-amber-100 text-amber-700;
+  }
+  .badge-outline {
+    @apply border border-slate-200 bg-white text-slate-600;
+  }
+  .badge-rating {
+    @apply bg-blue-50 text-blue-700;
+  }
+  .badge-new {
+    @apply bg-amber-100 text-amber-700;
+  }
+
+  /* Cards & surfaces (theme guide §6) */
+  .card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-card;
+  }
+  .card-hover {
+    @apply transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lift;
+  }
+
+  /* Form controls (theme guide §8): blue focus glow ring */
+  .input {
+    @apply block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 placeholder:text-slate-400
+      transition focus:border-blue-600 focus:outline-none focus:shadow-glow disabled:bg-slate-50 disabled:text-slate-500;
+  }
+
+  /* Caption / eyebrow text (theme guide §2) */
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-blue-600;
+  }
+  .caption {
+    @apply text-xs font-semibold uppercase tracking-[0.08em] text-slate-500;
+  }
 }
 
 /* Keep Leaflet panes below sticky headers and dropdowns */
 .leaflet-container {
   z-index: 0;
+  font-family: inherit;
 }

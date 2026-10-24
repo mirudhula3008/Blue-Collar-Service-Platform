@@ -12,7 +12,7 @@ export default function BookingCard({ booking, viewer, showMap = false, children
   const name = other?.name || (viewer === 'customer' ? 'Worker' : 'Customer');
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <article className="card p-4 sm:p-5">
       <div className="flex items-start gap-3">
         <img
           src={other?.profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=96`}
@@ -71,10 +71,8 @@ export default function BookingCard({ booking, viewer, showMap = false, children
 }
 
 export const buttonStyles = {
-  primary: 'rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50',
-  success: 'rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50',
-  danger:
-    'rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50',
-  ghost:
-    'rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-blue-400 disabled:opacity-50',
+  primary: 'btn btn-primary btn-sm',
+  success: 'btn btn-success btn-sm',
+  danger: 'btn btn-danger btn-sm',
+  ghost: 'btn btn-secondary btn-sm',
 };

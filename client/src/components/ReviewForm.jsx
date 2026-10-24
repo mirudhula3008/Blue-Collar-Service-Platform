@@ -61,7 +61,7 @@ export default function ReviewForm({ bookingId, workerName, onSubmitted }) {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+        className="btn btn-primary w-full py-3"
       >
         {submitting ? 'Submitting…' : 'Submit review'}
       </button>

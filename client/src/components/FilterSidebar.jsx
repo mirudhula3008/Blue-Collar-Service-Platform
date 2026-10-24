@@ -11,7 +11,7 @@ export default function FilterSidebar({ filters, onChange, onReset }) {
   const set = (key, value) => onChange({ ...filters, [key]: value });
 
   return (
-    <aside className="space-y-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <aside className="space-y-6 card p-5">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-slate-900">Filters</h2>
         <button type="button" onClick={onReset} className="text-sm text-blue-600 hover:underline">

@@ -68,7 +68,7 @@ export default function Profile() {
       {isWorker && <VerificationCard user={user} onUpdated={updateUser} />}
 
       <form onSubmit={handleSave} className="space-y-6">
-        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="space-y-4 card p-6">
           <h2 className="text-lg font-semibold text-slate-900">Personal details</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField label="Full name" value={form.name} onChange={set('name')} required />
@@ -80,7 +80,7 @@ export default function Profile() {
         </section>
 
         {isWorker && (
-          <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="space-y-4 card p-6">
             <h2 className="text-lg font-semibold text-slate-900">Work settings</h2>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -131,7 +131,7 @@ export default function Profile() {
           <button
             type="submit"
             disabled={saving}
-            className="rounded-lg bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            className="btn btn-primary"
           >
             {saving ? 'Saving…' : 'Save changes'}
           </button>
@@ -165,7 +165,7 @@ function ProfileHeader({ user, onUpdated }) {
   };
 
   return (
-    <section className="flex flex-col items-center gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row">
+    <section className="flex flex-col items-center gap-4 card p-6 sm:flex-row">
       <div className="relative">
         <img
           src={user.profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&size=192`}
@@ -183,7 +183,7 @@ function ProfileHeader({ user, onUpdated }) {
         <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFile} />
       </div>
       <div className="text-center sm:text-left">
-        <h1 className="text-2xl font-bold text-slate-900">{user.name}</h1>
+        <h1 className="font-display text-3xl sm:text-4xl text-navy">{user.name}</h1>
         <p className="capitalize text-slate-500">
           {user.role}
           {user.role === 'worker' && user.serviceCategory ? ` · ${user.serviceCategory}` : ''}

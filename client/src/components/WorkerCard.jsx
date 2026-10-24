@@ -1,42 +1,53 @@
 import { Link } from 'react-router-dom';
+import { Check, MapPin } from 'lucide-react';
 import StarDisplay from './StarDisplay';
 import { formatDistance, formatPriceRange } from '../utils/format';
 
+// Worker card (theme guide §6): avatar, name + Verified, stars, distance, availability, price, Negotiable.
 export default function WorkerCard({ worker, highlighted, onHover }) {
   return (
     <Link
       to={`/workers/${worker._id}`}
       onMouseEnter={() => onHover?.(worker._id)}
       onMouseLeave={() => onHover?.(null)}
-      className={`flex gap-4 rounded-xl border bg-white p-4 shadow-sm transition hover:shadow-md ${
-        highlighted ? 'border-blue-500 ring-2 ring-blue-100' : 'border-slate-200'
+      className={`flex gap-4 rounded-2xl border bg-white p-4 shadow-card transition hover:shadow-lift ${
+        highlighted ? 'border-blue-600 shadow-glow' : 'border-slate-200'
       }`}
     >
-      <img
-        src={worker.profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`}
-        alt={worker.name}
-        className="h-16 w-16 flex-none rounded-full object-cover bg-slate-100"
-        loading="lazy"
-      />
+      {worker.profilePhoto ? (
+        <img src={worker.profilePhoto} alt="" className="h-14 w-14 flex-none rounded-full bg-slate-100 object-cover" loading="lazy" />
+      ) : (
+        <span className="flex h-14 w-14 flex-none items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-xl font-semibold text-white">
+          {worker.name.charAt(0)}
+        </span>
+      )}
+
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="truncate font-semibold text-slate-900">{worker.name}</h3>
-          <span className="flex-none text-xs text-slate-500">{formatDistance(worker.distance)}</span>
-        </div>
-        <StarDisplay rating={worker.averageRating} count={worker.totalReviews} />
-        <p className="mt-1 text-sm font-medium text-slate-800">{formatPriceRange(worker.minPrice, worker.maxPrice)}</p>
-        <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
-          {worker.isNegotiable && (
-            <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700">Negotiable</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="truncate font-semibold text-navy">{worker.name}</h3>
+          {worker.isVerified && (
+            <span className="badge badge-verified">
+              <Check size={12} strokeWidth={3} /> Verified
+            </span>
           )}
-          <span
-            className={`rounded-full px-2 py-0.5 font-medium ${
-              worker.availability ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'
-            }`}
-          >
+        </div>
+
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
+          <StarDisplay rating={worker.averageRating} />
+          {worker.distance != null && (
+            <span className="inline-flex items-center gap-1">
+              <MapPin size={14} className="text-rose-500" /> {formatDistance(worker.distance).replace(' away', '')}
+            </span>
+          )}
+          <span className={`inline-flex items-center gap-1.5 font-medium ${worker.availability ? 'text-emerald-600' : 'text-slate-400'}`}>
+            <span className={`h-2 w-2 rounded-full ${worker.availability ? 'bg-emerald-500' : 'bg-slate-300'}`} />
             {worker.availability ? 'Available' : 'Busy'}
           </span>
-          {worker.address && <span className="truncate text-slate-400">{worker.address}</span>}
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="font-bold text-navy">{formatPriceRange(worker.minPrice, worker.maxPrice)}</span>
+          {worker.isNegotiable && <span className="badge badge-negotiable">Negotiable</span>}
         </div>
       </div>
     </Link>

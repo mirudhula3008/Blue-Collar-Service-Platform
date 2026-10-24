@@ -126,7 +126,7 @@ export default function AdminUsers() {
         {data && data.users.length > 0 && (
           <>
             {/* Desktop table */}
-            <div className="hidden overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm md:block">
+            <div className="hidden overflow-x-auto card md:block">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <tr>
@@ -167,7 +167,7 @@ export default function AdminUsers() {
             {/* Mobile cards */}
             <ul className="space-y-3 md:hidden">
               {data.users.map((u) => (
-                <li key={u._id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <li key={u._id} className="card p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate font-medium text-slate-900">{u.name}</p>

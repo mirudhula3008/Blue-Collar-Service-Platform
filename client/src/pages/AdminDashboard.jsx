@@ -141,7 +141,7 @@ function StatTile({ label, value, detail, highlight }) {
 
 function Panel({ title, children }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="card p-5">
       <h2 className="mb-4 font-semibold text-slate-900">{title}</h2>
       {children}
     </section>

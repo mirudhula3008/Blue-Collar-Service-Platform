@@ -37,7 +37,7 @@ export default function WorkerJobs() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-2xl font-bold text-slate-900">My jobs</h1>
+        <h1 className="font-display text-3xl sm:text-4xl text-navy">My jobs</h1>
         <Link to="/worker/dashboard" className={buttonStyles.ghost}>
           ← Incoming requests
         </Link>
@@ -103,7 +103,7 @@ export default function WorkerJobs() {
 
 function Stat({ label, value }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+    <div className="card p-4 text-center">
       <p className="text-xl font-bold tabular-nums text-slate-900">{value}</p>
       <p className="text-xs text-slate-500">{label}</p>
     </div>

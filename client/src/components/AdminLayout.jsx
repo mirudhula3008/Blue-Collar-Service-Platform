@@ -25,7 +25,7 @@ export default function AdminLayout({ title, actions, children }) {
         ))}
       </nav>
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
+        <h1 className="font-display text-3xl sm:text-4xl text-navy">{title}</h1>
         {actions}
       </div>
       <div className="mt-6">{children}</div>

@@ -86,11 +86,11 @@ export default function BookingForm() {
       <button type="button" onClick={() => navigate(-1)} className="text-sm text-blue-600 hover:underline">
         ← Back
       </button>
-      <h1 className="mt-2 text-2xl font-bold text-slate-900">Book {worker.name}</h1>
+      <h1 className="mt-2 font-display text-3xl sm:text-4xl text-navy">Book {worker.name}</h1>
 
       <form onSubmit={handleSubmit} className="mt-6 grid gap-6 lg:grid-cols-[1fr_300px]">
         <div className="space-y-6">
-          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="card p-5">
             <h2 className="font-semibold text-slate-900">1. Choose a service</h2>
             {worker.services?.length ? (
               <div className="mt-3 space-y-2">
@@ -123,12 +123,12 @@ export default function BookingForm() {
             )}
           </section>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="card p-5">
             <h2 className="mb-3 font-semibold text-slate-900">2. Pick a date and time</h2>
             <DateTimePicker value={schedule} onChange={setSchedule} />
           </section>
 
-          <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="space-y-4 card p-5">
             <h2 className="font-semibold text-slate-900">3. Describe the job</h2>
             <label className="block">
               <span className="text-sm font-medium text-slate-700">What needs doing?</span>
@@ -148,7 +148,7 @@ export default function BookingForm() {
 
         {/* Summary */}
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="card p-5">
             <h2 className="font-semibold text-slate-900">Summary</h2>
             <dl className="mt-3 space-y-2 text-sm">
               <Row label="Worker" value={worker.name} />
@@ -182,7 +182,7 @@ export default function BookingForm() {
 
             {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
-            <button type="submit" disabled={submitting} className={`${buttonStyles.primary} mt-4 w-full py-2.5`}>
+            <button type="submit" disabled={submitting} className="btn btn-amber mt-4 w-full py-3">
               {submitting ? 'Sending request…' : 'Confirm booking request'}
             </button>
             <p className="mt-2 text-center text-xs text-slate-400">You pay the worker directly once the job is done.</p>

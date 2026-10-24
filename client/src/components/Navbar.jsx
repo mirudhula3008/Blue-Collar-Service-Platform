@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { LogOut, Menu, X } from 'lucide-react';
 import { homePathFor, useAuth } from '../context/AuthContext';
 
-// Links per role. Other modules add their pages here when merging.
+// Links per role.
 const LINKS = {
   customer: [
     { to: '/dashboard', label: 'Services' },
@@ -22,68 +23,72 @@ const LINKS = {
 };
 
 const linkClass = ({ isActive }) =>
-  `block rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'text-blue-700' : 'text-slate-600 hover:text-blue-700'}`;
+  `block rounded-lg px-3 py-2 text-sm font-medium transition ${
+    isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-navy'
+  }`;
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
 
   const handleLogout = () => {
     logout();
-    setOpen(false);
+    close();
     navigate('/');
   };
 
   const links = user ? LINKS[user.role] || [] : [{ to: '/dashboard', label: 'Find workers' }];
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-        <Link to={user ? homePathFor(user.role) : '/'} className="text-lg font-bold text-blue-700">
-          Blue-Collar <span className="text-slate-800">Services</span>
+    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+        <Link to={user ? homePathFor(user.role) : '/'} className="text-xl font-bold tracking-tight" onClick={close}>
+          <span className="text-blue-600">Blue-Collar</span> <span className="text-navy">Services</span>
         </Link>
 
         <button
           type="button"
-          className="rounded-md p-2 text-slate-600 sm:hidden"
+          className="rounded-lg p-2 text-slate-600 hover:bg-slate-50 sm:hidden"
           onClick={() => setOpen((o) => !o)}
           aria-label="Toggle menu"
           aria-expanded={open}
         >
-          ☰
+          {open ? <X size={22} /> : <Menu size={22} />}
         </button>
 
         <nav
-          className={`${open ? 'flex' : 'hidden'} absolute left-0 right-0 top-14 flex-col gap-1 border-b border-slate-200 bg-white p-3 sm:static sm:flex sm:flex-row sm:items-center sm:border-0 sm:p-0`}
+          className={`${open ? 'flex' : 'hidden'} absolute left-0 right-0 top-16 flex-col gap-1 border-b border-slate-200 bg-white p-3 shadow-lift sm:static sm:flex sm:flex-row sm:items-center sm:gap-1 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none`}
         >
           {links.map((l) => (
-            <NavLink key={l.to} to={l.to} end={l.end} className={linkClass} onClick={() => setOpen(false)}>
+            <NavLink key={l.to} to={l.to} end={l.end} className={linkClass} onClick={close}>
               {l.label}
             </NavLink>
           ))}
+
           {user ? (
-            <>
-              <span className="px-3 py-2 text-sm text-slate-400 sm:border-l sm:border-slate-200">
-                {user.name.split(' ')[0]} · <span className="capitalize">{user.role}</span>
+            <div className="mt-2 flex items-center gap-2 border-t border-slate-100 pt-3 sm:ml-3 sm:mt-0 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-sm font-semibold text-white">
+                {user.name.charAt(0).toUpperCase()}
               </span>
-              <button type="button" onClick={handleLogout} className="rounded-md px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50">
-                Log out
+              <span className="text-sm leading-tight">
+                <span className="block font-semibold text-navy">{user.name.split(' ')[0]}</span>
+                <span className="block text-xs capitalize text-slate-500">{user.role}</span>
+              </span>
+              <button type="button" onClick={handleLogout} className="btn btn-ghost btn-sm ml-auto sm:ml-1" title="Log out">
+                <LogOut size={16} /> <span className="sm:hidden lg:inline">Log out</span>
               </button>
-            </>
+            </div>
           ) : (
-            <>
-              <NavLink to="/login" className={linkClass} onClick={() => setOpen(false)}>
+            <div className="mt-2 flex items-center gap-2 border-t border-slate-100 pt-3 sm:ml-3 sm:mt-0 sm:border-0 sm:pt-0">
+              <Link to="/login" onClick={close} className="btn btn-ghost btn-sm">
                 Log in
-              </NavLink>
-              <Link
-                to="/register"
-                onClick={() => setOpen(false)}
-                className="rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700"
-              >
+              </Link>
+              <Link to="/register" onClick={close} className="btn btn-primary btn-sm">
                 Sign up
               </Link>
-            </>
+            </div>
           )}
         </nav>
       </div>

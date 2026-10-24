@@ -44,7 +44,7 @@ export default function MyBookings() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-slate-900">My bookings</h1>
+      <h1 className="font-display text-3xl sm:text-4xl text-navy">My bookings</h1>
 
       {state?.justBooked && (
         <p className="mt-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">

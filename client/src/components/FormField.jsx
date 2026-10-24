@@ -1,6 +1,5 @@
 // Base control styles without margin, for inputs laid out in grids.
-export const controlClass =
-  'block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-100 disabled:text-slate-500';
+export const controlClass = 'input';
 
 export const inputClass = `mt-1 ${controlClass}`;
 
@@ -8,7 +7,7 @@ export const inputClass = `mt-1 ${controlClass}`;
 export default function FormField({ label, hint, as: Tag = 'input', children, className = '', ...props }) {
   return (
     <label className={`block ${className}`}>
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-sm font-semibold text-navy">{label}</span>
       <Tag className={inputClass} {...props}>
         {children}
       </Tag>

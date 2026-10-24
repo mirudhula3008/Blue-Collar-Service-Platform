@@ -35,7 +35,7 @@ export default function WorkerRequests() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Incoming requests</h1>
+          <h1 className="font-display text-3xl sm:text-4xl text-navy">Incoming requests</h1>
           <p className="text-sm text-slate-500">Updates automatically every {POLL_MS / 1000} seconds.</p>
         </div>
         <Link to="/worker/jobs" className={buttonStyles.ghost}>

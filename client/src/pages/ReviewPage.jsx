@@ -24,7 +24,7 @@ export default function ReviewPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <div className="card p-6 sm:p-8">
         {existing === undefined ? (
           <div className="h-40 animate-pulse rounded-xl bg-slate-100" />
         ) : review ? (
@@ -32,7 +32,7 @@ export default function ReviewPage() {
             <p className="text-4xl" aria-hidden="true">
               🎉
             </p>
-            <h1 className="mt-2 text-xl font-bold text-slate-900">
+            <h1 className="mt-2 font-display text-3xl text-navy">
               {submitted ? 'Thanks for your review!' : 'You already reviewed this job'}
             </h1>
             <div className="mt-3">
@@ -51,7 +51,7 @@ export default function ReviewPage() {
           </div>
         ) : (
           <>
-            <h1 className="mb-6 text-xl font-bold text-slate-900">Rate this job</h1>
+            <h1 className="mb-6 font-display text-3xl text-navy">Rate this job</h1>
             <ReviewForm bookingId={bookingId} workerName={workerName} onSubmitted={setSubmitted} />
           </>
         )}

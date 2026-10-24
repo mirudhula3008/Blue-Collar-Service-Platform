@@ -31,8 +31,8 @@ export default function Login() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-12">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
+      <div className="card p-6 sm:p-8">
+        <h1 className="font-display text-3xl sm:text-4xl text-navy">Welcome back</h1>
         <p className="mt-1 text-sm text-slate-500">Log in to your customer, worker or admin account.</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -49,7 +49,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            className="btn btn-primary w-full py-3"
           >
             {submitting ? 'Logging in…' : 'Log in'}
           </button>

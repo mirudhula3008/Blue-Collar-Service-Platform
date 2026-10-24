@@ -91,8 +91,8 @@ export default function Register() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <h1 className="text-2xl font-bold text-slate-900">Create your account</h1>
+      <div className="card p-6 sm:p-8">
+        <h1 className="font-display text-3xl sm:text-4xl text-navy">Create your account</h1>
 
         <div className="mt-6 grid grid-cols-2 gap-3" role="radiogroup" aria-label="Account type">
           {ROLES.map((r) => (
@@ -221,7 +221,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            className="btn btn-primary w-full py-3"
           >
             {submitting ? 'Creating account…' : `Sign up as a ${role}`}
           </button>

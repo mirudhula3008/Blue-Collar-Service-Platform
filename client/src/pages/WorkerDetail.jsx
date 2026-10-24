@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Check, MapPin } from 'lucide-react';
 import StarDisplay from '../components/StarDisplay';
 import WorkerMap from '../components/WorkerMap';
 import ReviewList from '../components/ReviewList';
@@ -49,40 +50,49 @@ export default function WorkerDetail() {
       <div className="mt-4 grid gap-6 md:grid-cols-[1fr_320px]">
         <div className="space-y-6">
           {/* Profile header */}
-          <section className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row">
-            <img
-              src={worker.profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`}
-              alt={worker.name}
-              className="h-24 w-24 flex-none rounded-full object-cover bg-slate-100"
-            />
+          <section className="card flex flex-col gap-5 p-6 sm:flex-row">
+            {worker.profilePhoto ? (
+              <img src={worker.profilePhoto} alt="" className="h-24 w-24 flex-none rounded-full bg-slate-100 object-cover" />
+            ) : (
+              <span className="flex h-24 w-24 flex-none items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-4xl font-semibold text-white">
+                {worker.name.charAt(0)}
+              </span>
+            )}
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-bold text-slate-900">{worker.name}</h1>
+                <h1 className="font-display text-3xl text-navy sm:text-4xl">{worker.name}</h1>
                 {worker.isVerified && (
-                  <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">✔ Verified</span>
+                  <span className="badge badge-verified">
+                    <Check size={12} strokeWidth={3} /> Verified
+                  </span>
                 )}
               </div>
-              <p className="capitalize text-slate-600">
-                {worker.serviceCategory}
-                {worker.experienceYears ? ` · ${worker.experienceYears} yrs experience` : ''}
-              </p>
-              <div className="mt-1">
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="badge badge-outline capitalize">{worker.serviceCategory}</span>
+                {worker.experienceYears > 0 && <span className="badge badge-outline">{worker.experienceYears} yrs experience</span>}
+                {worker.isNegotiable && <span className="badge badge-negotiable">Negotiable</span>}
+              </div>
+              <div className="mt-2">
                 <StarDisplay rating={worker.averageRating} count={worker.totalReviews} size="text-base" />
               </div>
-              {worker.address && <p className="mt-1 text-sm text-slate-500">📍 {worker.address}</p>}
-              {worker.bio && <p className="mt-3 text-slate-700">{worker.bio}</p>}
+              {worker.address && (
+                <p className="mt-1 inline-flex items-center gap-1 text-sm text-slate-500">
+                  <MapPin size={14} className="text-rose-500" /> {worker.address}
+                </p>
+              )}
+              {worker.bio && <p className="mt-3 leading-relaxed text-slate-600">{worker.bio}</p>}
             </div>
           </section>
 
           {/* Services */}
-          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Services &amp; prices</h2>
+          <section className="card p-6">
+            <h2 className="font-display text-2xl text-navy">Services &amp; prices</h2>
             {worker.services?.length ? (
               <ul className="mt-3 divide-y divide-slate-100">
                 {worker.services.map((s) => (
                   <li key={s._id || s.name} className="flex items-center justify-between py-3">
                     <span className="text-slate-700">{s.name}</span>
-                    <span className="font-semibold text-slate-900">
+                    <span className="font-bold text-navy">
                       {formatPrice(s.price)} <span className="text-xs font-normal text-slate-400">{s.unit}</span>
                     </span>
                   </li>
@@ -92,39 +102,43 @@ export default function WorkerDetail() {
               <p className="mt-3 text-slate-500">This worker hasn't listed any services yet.</p>
             )}
             {worker.isNegotiable && (
-              <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                💬 Prices are negotiable — you can agree on a price when booking.
+              <p className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                💬 Prices are negotiable. You can offer your own price when booking.
               </p>
             )}
           </section>
 
           {/* Reviews */}
-          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">Reviews</h2>
+          <section className="card p-6">
+            <h2 className="mb-4 font-display text-2xl text-navy">Reviews</h2>
             <ReviewList workerId={worker._id} />
           </section>
         </div>
 
         {/* Booking sidebar */}
-        <aside className="space-y-4 md:sticky md:top-20 md:self-start">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-slate-500">Price range</p>
-            <p className="text-2xl font-bold text-slate-900">{formatPriceRange(worker.minPrice, worker.maxPrice)}</p>
-            <p className={`mt-1 text-sm font-medium ${worker.availability ? 'text-emerald-600' : 'text-slate-500'}`}>
-              {worker.availability ? '● Available' : '● Currently busy'}
-            </p>
+        <aside className="space-y-4 md:sticky md:top-24 md:self-start">
+          <div className="card p-6">
+            <p className="caption">Price range</p>
+            <p className="mt-1 text-3xl font-bold text-navy">{formatPriceRange(worker.minPrice, worker.maxPrice)}</p>
+            <div className="mt-3">
+              {worker.availability ? (
+                <span className="badge badge-available">
+                  <span className="h-2 w-2 rounded-full bg-blue-600" /> Available
+                </span>
+              ) : (
+                <span className="badge badge-busy">Currently busy</span>
+              )}
+            </div>
             {user && user.role !== 'customer' ? (
-              <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500">Log in as a customer to book.</p>
+              <p className="mt-5 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">Log in as a customer to book.</p>
             ) : (
               <Link
                 to={`/book/${worker._id}`}
                 state={{ worker }}
-                className={`mt-4 block rounded-lg px-4 py-2.5 text-center font-semibold text-white ${
-                  worker.availability ? 'bg-blue-600 hover:bg-blue-700' : 'pointer-events-none bg-slate-300'
-                }`}
+                className={`btn mt-5 w-full py-3 ${worker.availability ? 'btn-amber' : 'pointer-events-none bg-slate-200 text-slate-500'}`}
                 aria-disabled={!worker.availability}
               >
-                {user ? 'Book Now' : 'Log in to book'}
+                {!worker.availability ? 'Not taking bookings' : user ? 'Book Now' : 'Log in to book'}
               </Link>
             )}
           </div>
