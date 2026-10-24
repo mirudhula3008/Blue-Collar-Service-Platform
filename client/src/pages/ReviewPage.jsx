@@ -3,11 +3,13 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import ReviewForm from '../components/ReviewForm';
 import StarRating from '../components/StarRating';
 import { getReviewForBooking } from '../api/reviews';
+import { useLanguage } from '../context/LanguageContext';
 
 // /review/:bookingId — Module 3 links here from a completed booking and can pass
 // `state={{ booking }}` (with booking.workerId.name) to show the worker's name.
 export default function ReviewPage() {
   const { bookingId } = useParams();
+  const { t } = useLanguage();
   const { state } = useLocation();
   const workerName = state?.booking?.workerId?.name || state?.workerName;
 
@@ -33,7 +35,7 @@ export default function ReviewPage() {
               🎉
             </p>
             <h1 className="mt-2 font-display text-3xl text-navy">
-              {submitted ? 'Thanks for your review!' : 'You already reviewed this job'}
+              {submitted ? t('review.thankYou') : t('review.alreadyReviewed')}
             </h1>
             <div className="mt-3">
               <StarRating value={review.rating} size="md" />
@@ -41,17 +43,20 @@ export default function ReviewPage() {
             {review.comment && <p className="mt-3 text-slate-600">“{review.comment}”</p>}
             {submitted?.workerRating && (
               <p className="mt-4 text-sm text-slate-500">
-                {workerName || 'The worker'} now has a {submitted.workerRating.averageRating.toFixed(1)}★ average from{' '}
-                {submitted.workerRating.totalReviews} review{submitted.workerRating.totalReviews === 1 ? '' : 's'}.
+                {t('review.newAverage', {
+                  name: workerName || t('payment.theWorker'),
+                  rating: submitted.workerRating.averageRating.toFixed(1),
+                  count: submitted.workerRating.totalReviews,
+                })}
               </p>
             )}
             <Link to="/bookings" className="mt-6 inline-block font-medium text-blue-600 hover:underline">
-              ← Back to my bookings
+              ← {t('payment.backToBookings')}
             </Link>
           </div>
         ) : (
           <>
-            <h1 className="mb-6 font-display text-3xl text-navy">Rate this job</h1>
+            <h1 className="mb-6 font-display text-3xl text-navy">{t('review.rateJob')}</h1>
             <ReviewForm bookingId={bookingId} workerName={workerName} onSubmitted={setSubmitted} />
           </>
         )}

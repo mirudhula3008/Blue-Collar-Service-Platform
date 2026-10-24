@@ -4,70 +4,72 @@ import BookingCard, { buttonStyles } from '../components/BookingCard';
 import usePolling from '../hooks/usePolling';
 import { getCustomerBookings, updateBookingStatus } from '../api/bookings';
 import { errorMessage } from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 import { ACTIVE, scheduleKey } from '../utils/bookings';
 
 const TABS = [
-  { id: 'active', label: 'Active', match: (b) => ACTIVE.includes(b.status) },
-  { id: 'completed', label: 'Completed', match: (b) => b.status === 'completed' },
-  { id: 'cancelled', label: 'Cancelled', match: (b) => ['cancelled', 'rejected', 'cancelled_by_admin'].includes(b.status) },
+  { id: 'active', label: 'bookings.tabs.active', match: (b) => ACTIVE.includes(b.status) },
+  { id: 'completed', label: 'bookings.tabs.completed', match: (b) => b.status === 'completed' },
+  { id: 'cancelled', label: 'bookings.tabs.cancelled', match: (b) => ['cancelled', 'rejected', 'cancelled_by_admin'].includes(b.status) },
 ];
 
 const EMPTY = {
-  active: 'No active bookings. Find a worker to get started.',
-  completed: 'No completed jobs yet.',
-  cancelled: 'No cancelled or declined bookings.',
+  active: 'bookings.empty.active',
+  completed: 'bookings.empty.completed',
+  cancelled: 'bookings.empty.cancelled',
 };
 
 export default function MyBookings() {
+  const { t } = useLanguage();
   const { state } = useLocation();
   const [tab, setTab] = useState('active');
   const [busyId, setBusyId] = useState(null);
   const { data: bookings, setData, error, loading } = usePolling(() => getCustomerBookings(), 30000);
 
   const cancel = async (booking) => {
-    const refundNote = booking.paymentStatus === 'paid' && booking.paymentMethod !== 'cash' ? ' Your payment will be refunded.' : '';
-    if (!window.confirm(`Cancel your booking with ${booking.workerId?.name || 'this worker'}?${refundNote}`)) return;
+    const refundNote = booking.paymentStatus === 'paid' && booking.paymentMethod !== 'cash' ? ` ${t('bookings.refundNote')}` : '';
+    if (!window.confirm(`${t('bookings.confirmCancel', { name: booking.workerId?.name || t('payment.theWorker') })}${refundNote}`)) return;
     setBusyId(booking._id);
     try {
       const updated = await updateBookingStatus(booking._id, 'cancel');
       setData((list) => list.map((b) => (b._id === updated._id ? updated : b)));
     } catch (err) {
-      window.alert(errorMessage(err, 'Could not cancel the booking.'));
+      window.alert(errorMessage(err, t('bookings.cancelFailed')));
     } finally {
       setBusyId(null);
     }
   };
 
-  const current = TABS.find((t) => t.id === tab);
+  const current = TABS.find((item) => item.id === tab);
   const list = (bookings || []).filter(current.match);
   // Upcoming soonest first for active; most recent first otherwise.
   list.sort((a, b) => (tab === 'active' ? scheduleKey(a).localeCompare(scheduleKey(b)) : scheduleKey(b).localeCompare(scheduleKey(a))));
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="font-display text-3xl sm:text-4xl text-navy">My bookings</h1>
+      <h1 className="font-display text-3xl sm:text-4xl text-navy">{t('nav.myBookings')}</h1>
 
       {state?.justBooked && (
         <p className="mt-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          ✅ Request sent to {state.justBooked}. You’ll see it here as <strong>Accepted</strong> once they confirm.
+          ✅ {t('bookings.requestSent', { name: state.justBooked })}
         </p>
       )}
 
       <div className="mt-6 flex gap-1 border-b border-slate-200" role="tablist">
-        {TABS.map((t) => {
-          const count = (bookings || []).filter(t.match).length;
+        {TABS.map((item) => {
+          const count = (bookings || []).filter(item.match).length;
           return (
             <button
-              key={t.id}
+              key={item.id}
               type="button"
               role="tab"
-              aria-selected={tab === t.id}
-              onClick={() => setTab(t.id)}
+              aria-selected={tab === item.id}
+              onClick={() => setTab(item.id)}
               className={`-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium ${
-                tab === t.id ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-800'
+                tab === item.id ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
-              {t.label}
+              {t(item.label)}
               {count > 0 && <span className="rounded-full bg-slate-100 px-1.5 text-xs text-slate-600">{count}</span>}
             </button>
           );
@@ -80,11 +82,11 @@ export default function MyBookings() {
 
         {bookings && list.length === 0 && (
           <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
-            {EMPTY[tab]}
+            {t(EMPTY[tab])}
             {tab === 'active' && (
               <div className="mt-3">
                 <Link to="/dashboard" className="font-medium text-blue-600 hover:underline">
-                  Browse services →
+                  {t('bookings.browse')}
                 </Link>
               </div>
             )}
@@ -95,20 +97,20 @@ export default function MyBookings() {
           <BookingCard key={b._id} booking={b} viewer="customer">
             {['requested', 'accepted'].includes(b.status) && b.paymentStatus !== 'paid' && (
               <Link to={`/payment/${b._id}`} className="btn btn-amber btn-sm">
-                Pay now
+                {t('bookings.payNow')}
               </Link>
             )}
             {['requested', 'accepted'].includes(b.status) && (
               <button type="button" className={buttonStyles.danger} disabled={busyId === b._id} onClick={() => cancel(b)}>
-                {busyId === b._id ? 'Cancelling…' : 'Cancel booking'}
+                {busyId === b._id ? t('bookings.cancelling') : t('bookings.cancel')}
               </button>
             )}
             {b.status === 'completed' &&
               (b.reviewed ? (
-                <span className="py-2 text-sm font-medium text-emerald-700">✓ Reviewed</span>
+                <span className="py-2 text-sm font-medium text-emerald-700">✓ {t('bookings.reviewed')}</span>
               ) : (
                 <Link to={`/review/${b._id}`} state={{ booking: b }} className={buttonStyles.primary}>
-                  ★ Leave a review
+                  ★ {t('bookings.leaveReview')}
                 </Link>
               ))}
           </BookingCard>

@@ -1,12 +1,17 @@
-import { Hammer, Paintbrush, Sparkles, Wrench, Zap } from 'lucide-react';
+import { Bike, Car, Cog, Hammer, KeyRound, Paintbrush, Refrigerator, Sparkles, Wrench, Zap } from 'lucide-react';
 
-// Line icon + tile tint per service category (theme guide §5–6).
+// Line icon + tile tint per service category (theme guide §5–6). Names and blurbs live in the locale files.
 export const CATEGORY_META = {
-  plumbing: { Icon: Wrench, tile: 'bg-blue-50 text-blue-600', blurb: 'Pipe repairs, installations, leak fixes.' },
-  electrical: { Icon: Zap, tile: 'bg-amber-100 text-amber-700', blurb: 'Wiring, switches, fans and appliance repair.' },
-  carpentry: { Icon: Hammer, tile: 'bg-slate-100 text-slate-700', blurb: 'Furniture repair, doors, shelves and fittings.' },
-  painting: { Icon: Paintbrush, tile: 'bg-blue-50 text-blue-600', blurb: 'Interior, exterior and touch-up painting.' },
-  cleaning: { Icon: Sparkles, tile: 'bg-emerald-50 text-emerald-700', blurb: 'Home deep clean, kitchen, bathroom, office.' },
+  plumbing: { Icon: Wrench, tile: 'bg-blue-50 text-blue-600' },
+  electrical: { Icon: Zap, tile: 'bg-amber-100 text-amber-700' },
+  carpentry: { Icon: Hammer, tile: 'bg-slate-100 text-slate-700' },
+  painting: { Icon: Paintbrush, tile: 'bg-blue-50 text-blue-600' },
+  cleaning: { Icon: Sparkles, tile: 'bg-emerald-50 text-emerald-700' },
+  appliance_repair: { Icon: Refrigerator, tile: 'bg-slate-100 text-slate-700' },
+  vehicle_rental: { Icon: KeyRound, tile: 'bg-amber-100 text-amber-700' },
+  car_wash: { Icon: Car, tile: 'bg-blue-50 text-blue-600' },
+  bike_wash: { Icon: Bike, tile: 'bg-emerald-50 text-emerald-700' },
+  mechanic: { Icon: Cog, tile: 'bg-slate-100 text-slate-700' },
 };
 
 export default function CategoryIcon({ id, size = 'md', tinted = true }) {

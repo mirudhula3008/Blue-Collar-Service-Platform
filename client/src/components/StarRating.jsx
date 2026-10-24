@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
-const LABELS = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
+const LABELS = ['', 'review.labels.1', 'review.labels.2', 'review.labels.3', 'review.labels.4', 'review.labels.5'];
 
 const SIZES = { sm: 'text-base', md: 'text-2xl', lg: 'text-4xl' };
 
@@ -9,6 +10,7 @@ const SIZES = { sm: 'text-base', md: 'text-2xl', lg: 'text-4xl' };
  * Interactive mode is a radio group: arrow keys move, number keys 1–5 pick.
  */
 export default function StarRating({ value = 0, onChange, size = 'md', showLabel = false }) {
+  const { t } = useLanguage();
   const [hover, setHover] = useState(0);
   const interactive = Boolean(onChange);
   const shown = hover || value;
@@ -16,7 +18,7 @@ export default function StarRating({ value = 0, onChange, size = 'md', showLabel
   if (!interactive) {
     const rounded = Math.round(value);
     return (
-      <span className={`inline-flex ${SIZES[size]} leading-none`} role="img" aria-label={`${value || 0} out of 5 stars`}>
+      <span className={`inline-flex ${SIZES[size]} leading-none`} role="img" aria-label={`${t('worker.rating')}: ${value || 0} / 5`}>
         {[1, 2, 3, 4, 5].map((n) => (
           <span key={n} className={n <= rounded ? 'text-amber-400' : 'text-slate-300'} aria-hidden="true">
             ★
@@ -42,7 +44,7 @@ export default function StarRating({ value = 0, onChange, size = 'md', showLabel
     <div className="inline-flex items-center gap-3">
       <div
         role="radiogroup"
-        aria-label="Rating"
+        aria-label={t('worker.rating')}
         className={`inline-flex ${SIZES[size]} leading-none`}
         onMouseLeave={() => setHover(0)}
         onKeyDown={handleKeyDown}
@@ -53,7 +55,7 @@ export default function StarRating({ value = 0, onChange, size = 'md', showLabel
             type="button"
             role="radio"
             aria-checked={value === n}
-            aria-label={`${n} star${n > 1 ? 's' : ''} – ${LABELS[n]}`}
+            aria-label={`${n} ★ – ${t(LABELS[n])}`}
             tabIndex={value === n || (!value && n === 1) ? 0 : -1}
             onClick={() => onChange(n)}
             onMouseEnter={() => setHover(n)}
@@ -65,7 +67,7 @@ export default function StarRating({ value = 0, onChange, size = 'md', showLabel
           </button>
         ))}
       </div>
-      {showLabel && <span className="min-w-[5.5rem] text-sm font-medium text-slate-600">{LABELS[shown] || 'Tap to rate'}</span>}
+      {showLabel && <span className="min-w-[5.5rem] text-sm font-medium text-slate-600">{shown ? t(LABELS[shown]) : t('review.tapToRate')}</span>}
     </div>
   );
 }

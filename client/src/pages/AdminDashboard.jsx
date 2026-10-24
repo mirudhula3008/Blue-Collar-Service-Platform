@@ -6,18 +6,12 @@ import { AccountStatusBadge, dateTime } from '../components/AdminUi';
 import { getAdminDashboard, getAdminStats } from '../api/admin';
 import { errorMessage } from '../api/client';
 import { formatPrice } from '../utils/format';
+import { useLanguage } from '../context/LanguageContext';
 
-const BOOKING_LABELS = {
-  requested: 'Requested',
-  accepted: 'Accepted',
-  in_progress: 'In progress',
-  completed: 'Completed',
-  rejected: 'Declined',
-  cancelled: 'Cancelled',
-  cancelled_by_admin: 'Cancelled by admin',
-};
+const BOOKING_STATUSES = ['requested', 'accepted', 'in_progress', 'completed', 'rejected', 'cancelled', 'cancelled_by_admin'];
 
 export default function AdminDashboard() {
+  const { t } = useLanguage();
   const [dash, setDash] = useState(null);
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
@@ -31,7 +25,7 @@ export default function AdminDashboard() {
         setStats(s);
         setError(null);
       })
-      .catch((err) => setError(errorMessage(err, 'Could not load platform stats.')))
+      .catch((err) => setError(errorMessage(err, t('admin.statsFailed'))))
       .finally(() => setRefreshing(false));
   }, []);
 
@@ -39,12 +33,12 @@ export default function AdminDashboard() {
 
   const refresh = (
     <button type="button" onClick={load} disabled={refreshing} className="btn btn-secondary btn-sm">
-      {refreshing ? 'Refreshing…' : '↻ Refresh'}
+      {refreshing ? t('common.refreshing') : t('common.refresh')}
     </button>
   );
 
   return (
-    <AdminLayout title="Platform overview" actions={refresh}>
+    <AdminLayout title={t('admin.overviewTitle')} actions={refresh}>
       {error && <p className="mb-6 rounded-xl bg-rose-50 p-4 text-rose-700">{error}</p>}
 
       {!dash ? (
@@ -60,67 +54,72 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <StatTile
               Icon={Users}
-              label="Total users"
+              label={t('admin.totalUsers')}
               value={dash.totalUsers}
-              detail={`${dash.totalCustomers} customers · ${dash.totalWorkers} workers`}
+              detail={t('admin.usersDetail', { customers: dash.totalCustomers, workers: dash.totalWorkers })}
             />
             <StatTile
               Icon={UserCheck}
-              label="Active workers"
+              label={t('admin.activeWorkers')}
               value={dash.activeWorkers}
               detail={
                 <Link to="/admin/workers" className="font-medium text-blue-600 hover:underline">
-                  {dash.suspendedWorkers} suspended · {dash.blockedWorkers} blocked · {dash.underReviewWorkers} in review
+                  {t('admin.workersDetail', { suspended: dash.suspendedWorkers, blocked: dash.blockedWorkers, review: dash.underReviewWorkers })}
                 </Link>
               }
             />
             <StatTile
               Icon={ClipboardList}
-              label="Bookings"
+              label={t('nav.bookings')}
               value={dash.totalBookings}
-              detail={`${dash.activeBookings} active · ${dash.completedBookings} completed`}
+              detail={t('admin.bookingsDetail', { active: dash.activeBookings, completed: dash.completedBookings })}
             />
             <StatTile
               Icon={IndianRupee}
-              label="Revenue (completed jobs)"
+              label={t('admin.revenue')}
               value={formatPrice(dash.totalRevenue)}
-              detail={`${formatPrice(dash.totalCommission)} platform commission`}
+              detail={t('admin.commissionDetail', { amount: formatPrice(dash.totalCommission) })}
             />
             <StatTile
               Icon={CalendarCheck}
-              label="Today"
+              label={t('earnings.today')}
               value={formatPrice(dash.todayRevenue)}
-              detail={`${dash.todayBookings} new booking${dash.todayBookings === 1 ? '' : 's'}`}
+              detail={t('admin.newBookings', { count: dash.todayBookings })}
             />
             <StatTile
               Icon={ShieldCheck}
-              label="Pending verification"
+              label={t('admin.pendingVerification')}
               value={dash.pendingVerification}
               highlight={dash.pendingVerification > 0}
               detail={
                 dash.pendingVerification ? (
                   <Link to="/admin/users?verified=false" className="font-medium text-blue-600 hover:underline">
-                    Review ID proofs →
+                    {t('admin.reviewIdProofs')}
                   </Link>
                 ) : (
-                  'All caught up'
+                  t('admin.allCaughtUp')
                 )
               }
             />
-            <StatTile Icon={MessageSquareText} label="Jobs awaiting review" value={dash.pendingReviews} detail="Completed, not yet rated" />
+            <StatTile
+              Icon={MessageSquareText}
+              label={t('admin.awaitingReview')}
+              value={dash.pendingReviews}
+              detail={t('admin.awaitingReviewDetail')}
+            />
             <StatTile
               Icon={Flag}
-              label="Account flags (7 days)"
+              label={t('admin.flags')}
               value={dash.recentComplaints}
               highlight={dash.recentComplaints > 0}
-              detail="Workers suspended, blocked or put under review"
+              detail={t('admin.flagsDetail')}
             />
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <Panel title="Recent account actions">
+            <Panel title={t('admin.recentActions')}>
               {dash.recentStatusActions.length === 0 ? (
-                <p className="text-sm text-slate-500">No worker status changes yet.</p>
+                <p className="text-sm text-slate-500">{t('admin.noActions')}</p>
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {dash.recentStatusActions.map((a) => (
@@ -133,7 +132,7 @@ export default function AdminDashboard() {
                       </div>
                       <p className="mt-1 line-clamp-2 text-sm text-slate-600">“{a.reason}”</p>
                       <p className="mt-1 text-xs text-slate-400">
-                        {a.adminName || 'Admin'} · {dateTime(a.changedAt)}
+                        {a.adminName || t('nav.roles.admin')} · {dateTime(a.changedAt)}
                       </p>
                     </li>
                   ))}
@@ -141,17 +140,17 @@ export default function AdminDashboard() {
               )}
             </Panel>
 
-            <Panel title="Bookings by status">
+            <Panel title={t('admin.bookingsByStatus')}>
               {stats.bookings.total === 0 ? (
-                <p className="text-sm text-slate-500">No bookings yet.</p>
+                <p className="text-sm text-slate-500">{t('booking.noBookings')}</p>
               ) : (
-                <BarList rows={Object.entries(BOOKING_LABELS).map(([key, label]) => ({ label, value: stats.bookings.byStatus[key] || 0 }))} />
+                <BarList rows={BOOKING_STATUSES.map((key) => ({ label: t(`booking.status.${key}`), value: stats.bookings.byStatus[key] || 0 }))} />
               )}
             </Panel>
           </div>
 
-          <Panel title="Workers by category">
-            <BarList rows={stats.workers.byCategory.map((c) => ({ label: c.category, value: c.count }))} />
+          <Panel title={t('admin.workersByCategory')}>
+            <BarList rows={stats.workers.byCategory.map((c) => ({ label: t(`services.${c.category}`), value: c.count }))} />
           </Panel>
         </div>
       )}
@@ -202,10 +201,11 @@ function BarList({ rows }) {
 }
 
 export function RoleBadge({ role }) {
+  const { t } = useLanguage();
   const styles = {
     customer: 'bg-blue-50 text-blue-700',
     worker: 'bg-emerald-50 text-emerald-700',
     admin: 'bg-navy text-white',
   };
-  return <span className={`rounded-full px-2 py-0.5 font-medium capitalize ${styles[role] || ''}`}>{role}</span>;
+  return <span className={`rounded-full px-2 py-0.5 font-medium capitalize ${styles[role] || ''}`}>{t(`nav.roles.${role}`)}</span>;
 }

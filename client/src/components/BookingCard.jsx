@@ -1,15 +1,17 @@
 import StatusBadge from './StatusBadge';
 import BookingLocationMap from './BookingLocationMap';
+import { useLanguage } from '../context/LanguageContext';
 import { formatPrice } from '../utils/format';
-import { PAYMENT_METHOD_LABEL, formatScheduleDate, formatTime } from '../utils/bookings';
+import { formatScheduleDate, formatTime } from '../utils/bookings';
 
 /**
  * One booking. `viewer` is 'customer' (shows the worker) or 'worker' (shows the customer).
  * Action buttons go in `children`.
  */
 export default function BookingCard({ booking, viewer, showMap = false, children }) {
+  const { t } = useLanguage();
   const other = viewer === 'customer' ? booking.workerId : booking.customerId;
-  const name = other?.name || (viewer === 'customer' ? 'Worker' : 'Customer');
+  const name = other?.name || t(viewer === 'customer' ? 'nav.roles.worker' : 'nav.roles.customer');
 
   return (
     <article className="card p-4 sm:p-5">
@@ -35,24 +37,24 @@ export default function BookingCard({ booking, viewer, showMap = false, children
 
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
         <div>
-          <dt className="text-xs text-slate-400">When</dt>
+          <dt className="text-xs text-slate-400">{t('booking.when')}</dt>
           <dd className="font-medium text-slate-800">
             {formatScheduleDate(booking.scheduledDate)}, {formatTime(booking.scheduledTime)}
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-slate-400">Agreed price</dt>
+          <dt className="text-xs text-slate-400">{t('booking.agreedPrice')}</dt>
           <dd className="font-medium text-slate-800">{formatPrice(booking.agreedPrice)}</dd>
         </div>
         <div>
-          <dt className="text-xs text-slate-400">Phone</dt>
+          <dt className="text-xs text-slate-400">{t('booking.phone')}</dt>
           <dd className="font-medium text-slate-800">
             {other?.phone ? (
               <a href={`tel:${other.phone}`} className="text-blue-600 hover:underline">
                 {other.phone}
               </a>
             ) : (
-              <span className="text-slate-400">Shared once accepted</span>
+              <span className="text-slate-400">{t('booking.phoneHidden')}</span>
             )}
           </dd>
         </div>
@@ -81,15 +83,16 @@ export const buttonStyles = {
 };
 
 function PaymentBadge({ booking }) {
+  const { t } = useLanguage();
   if (booking.paymentStatus === 'paid') {
     const cash = booking.paymentMethod === 'cash';
     return (
       <span className={`badge ${cash ? 'badge-negotiable' : 'badge-verified'}`}>
-        {cash ? 'Cash on delivery' : `Paid · ${PAYMENT_METHOD_LABEL[booking.paymentMethod] || 'Online'}`}
+        {cash ? t('booking.cashOnDelivery') : t('booking.paidVia', { method: t(`booking.methods.${booking.paymentMethod || 'online'}`) })}
       </span>
     );
   }
-  if (booking.paymentStatus === 'refunded') return <span className="badge badge-busy">Refunded</span>;
-  if (['requested', 'accepted', 'in_progress'].includes(booking.status)) return <span className="badge badge-outline">Unpaid</span>;
+  if (booking.paymentStatus === 'refunded') return <span className="badge badge-busy">{t('booking.refunded')}</span>;
+  if (['requested', 'accepted', 'in_progress'].includes(booking.status)) return <span className="badge badge-outline">{t('booking.unpaid')}</span>;
   return null;
 }

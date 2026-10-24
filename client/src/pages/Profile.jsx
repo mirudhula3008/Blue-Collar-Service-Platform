@@ -3,6 +3,7 @@ import FormField from '../components/FormField';
 import LocationPicker from '../components/LocationPicker';
 import ServicesEditor, { cleanServices } from '../components/ServicesEditor';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { updateProfile, uploadIdProof, uploadProfilePhoto } from '../api/auth';
 import { errorMessage } from '../api/client';
 import { CATEGORIES } from '../data/categories';
@@ -13,6 +14,7 @@ const toLatLng = (location) =>
 // Customer and worker profile page. Worker-only sections render when role === 'worker'.
 export default function Profile() {
   const { user, updateUser } = useAuth();
+  const { t } = useLanguage();
   const isWorker = user.role === 'worker';
 
   const [form, setForm] = useState({
@@ -53,9 +55,9 @@ export default function Profile() {
       const updated = await updateProfile(payload);
       updateUser(updated);
       setServices(updated.services || []);
-      setMessage({ type: 'success', text: 'Profile saved.' });
+      setMessage({ type: 'success', text: t('profile.saved') });
     } catch (err) {
-      setMessage({ type: 'error', text: errorMessage(err, 'Could not save your profile.') });
+      setMessage({ type: 'error', text: errorMessage(err, t('profile.saveFailed')) });
     } finally {
       setSaving(false);
     }
@@ -69,46 +71,46 @@ export default function Profile() {
 
       <form onSubmit={handleSave} className="space-y-6">
         <section className="space-y-4 card p-6">
-          <h2 className="text-lg font-semibold text-slate-900">Personal details</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t('profile.personal')}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Full name" value={form.name} onChange={set('name')} required />
-            <FormField label="Phone" type="tel" value={form.phone} onChange={set('phone')} required />
-            <FormField label="Email" value={user.email} disabled hint="Email can't be changed" />
-            <FormField label="Area / address" value={form.address} onChange={set('address')} />
+            <FormField label={t('auth.fullName')} value={form.name} onChange={set('name')} required />
+            <FormField label={t('auth.phone')} type="tel" value={form.phone} onChange={set('phone')} required />
+            <FormField label={t('auth.email')} value={user.email} disabled hint={t('profile.emailFixed')} />
+            <FormField label={t('auth.location')} value={form.address} onChange={set('address')} />
           </div>
           <LocationPicker value={location} onChange={setLocation} required={isWorker} />
         </section>
 
         {isWorker && (
           <section className="space-y-4 card p-6">
-            <h2 className="text-lg font-semibold text-slate-900">Work settings</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{t('profile.workSettings')}</h2>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <Toggle
-                label="Available for new jobs"
-                hint="Turn off when you're busy"
+                label={t('profile.availableToggle')}
+                hint={t('profile.availableHint')}
                 checked={form.availability}
                 onChange={set('availability')}
               />
               <Toggle
-                label="Prices are negotiable"
-                hint="Customers can propose a price"
+                label={t('profile.negotiableToggle')}
+                hint={t('profile.negotiableHint')}
                 checked={form.isNegotiable}
                 onChange={set('isNegotiable')}
               />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Service category" as="select" value={form.serviceCategory} onChange={set('serviceCategory')} required>
-                <option value="">Choose…</option>
+              <FormField label={t('auth.category')} as="select" value={form.serviceCategory} onChange={set('serviceCategory')} required>
+                <option value="">{t('auth.choose')}</option>
                 {CATEGORIES.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.icon} {c.name}
+                    {c.icon} {t(`services.${c.id}`)}
                   </option>
                 ))}
               </FormField>
               <FormField
-                label="Years of experience"
+                label={t('auth.experience')}
                 type="number"
                 min="0"
                 max="60"
@@ -116,10 +118,10 @@ export default function Profile() {
                 onChange={set('experienceYears')}
               />
             </div>
-            <FormField label="About you" as="textarea" rows={3} value={form.bio} onChange={set('bio')} />
+            <FormField label={t('auth.about')} as="textarea" rows={3} value={form.bio} onChange={set('bio')} />
 
             <div>
-              <span className="text-sm font-medium text-slate-700">Services and prices</span>
+              <span className="text-sm font-medium text-slate-700">{t('auth.servicesPrices')}</span>
               <div className="mt-2">
                 <ServicesEditor services={services} onChange={setServices} />
               </div>
@@ -133,7 +135,7 @@ export default function Profile() {
             disabled={saving}
             className="btn btn-primary"
           >
-            {saving ? 'Saving…' : 'Save changes'}
+            {saving ? t('common.saving') : t('profile.saveChanges')}
           </button>
           {message && (
             <span className={`text-sm ${message.type === 'success' ? 'text-emerald-700' : 'text-red-600'}`}>{message.text}</span>
@@ -145,6 +147,7 @@ export default function Profile() {
 }
 
 function ProfileHeader({ user, onUpdated }) {
+  const { t } = useLanguage();
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
@@ -158,7 +161,7 @@ function ProfileHeader({ user, onUpdated }) {
     try {
       onUpdated(await uploadProfilePhoto(file));
     } catch (err) {
-      setError(errorMessage(err, 'Could not upload photo.'));
+      setError(errorMessage(err, t('profile.photoFailed')));
     } finally {
       setUploading(false);
     }
@@ -184,14 +187,14 @@ function ProfileHeader({ user, onUpdated }) {
       </div>
       <div className="text-center sm:text-left">
         <h1 className="font-display text-3xl sm:text-4xl text-navy">{user.name}</h1>
-        <p className="capitalize text-slate-500">
-          {user.role}
-          {user.role === 'worker' && user.serviceCategory ? ` · ${user.serviceCategory}` : ''}
+        <p className="text-slate-500">
+          {t(`nav.roles.${user.role}`)}
+          {user.role === 'worker' && user.serviceCategory ? ` · ${t(`services.${user.serviceCategory}`)}` : ''}
         </p>
         {user.role === 'worker' && (
           <p className="mt-1 text-sm text-slate-600">
-            <span className="text-amber-400">★</span> {user.averageRating ? user.averageRating.toFixed(1) : 'No ratings yet'}
-            {user.totalReviews ? ` · ${user.totalReviews} review${user.totalReviews === 1 ? '' : 's'}` : ''}
+            <span className="text-amber-400">★</span> {user.averageRating ? user.averageRating.toFixed(1) : t('profile.noRatings')}
+            {user.totalReviews ? ` ${t('worker.reviewCount', { count: user.totalReviews })}` : ''}
           </p>
         )}
         {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
@@ -201,6 +204,7 @@ function ProfileHeader({ user, onUpdated }) {
 }
 
 function VerificationCard({ user, onUpdated }) {
+  const { t } = useLanguage();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -213,7 +217,7 @@ function VerificationCard({ user, onUpdated }) {
     try {
       onUpdated(await uploadIdProof(file));
     } catch (err) {
-      setError(errorMessage(err, 'Could not upload ID proof.'));
+      setError(errorMessage(err, t('profile.idFailed')));
     } finally {
       setUploading(false);
     }
@@ -227,18 +231,18 @@ function VerificationCard({ user, onUpdated }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className={`font-semibold ${verified ? 'text-emerald-800' : 'text-amber-800'}`}>
-            {verified ? '✔ Verified worker' : '⏳ Verification pending'}
+            {verified ? `✔ ${t('profile.verifiedWorker')}` : `⏳ ${t('profile.pending')}`}
           </p>
           <p className={`text-sm ${verified ? 'text-emerald-700' : 'text-amber-700'}`}>
             {verified
-              ? 'Customers nearby can find and book you.'
+              ? t('profile.verifiedNote')
               : user.idProofUrl
-                ? 'An admin will review your ID proof. You will appear in search once verified.'
-                : 'Upload an ID proof to get verified.'}
+                ? t('profile.pendingNote')
+                : t('profile.uploadToVerify')}
           </p>
         </div>
         <label className="cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:border-blue-400">
-          {uploading ? 'Uploading…' : user.idProofUrl ? 'Replace ID proof' : 'Upload ID proof'}
+          {uploading ? t('common.uploading') : user.idProofUrl ? t('profile.replaceId') : t('profile.uploadId')}
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -249,7 +253,7 @@ function VerificationCard({ user, onUpdated }) {
         </label>
       </div>
       {verified && user.idProofUrl && (
-        <p className="mt-2 text-xs text-emerald-700">Replacing your ID proof will require verification again.</p>
+        <p className="mt-2 text-xs text-emerald-700">{t('profile.replaceWarning')}</p>
       )}
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </section>

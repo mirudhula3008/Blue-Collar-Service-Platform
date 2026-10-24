@@ -4,23 +4,25 @@ import BookingCard, { buttonStyles } from '../components/BookingCard';
 import usePolling from '../hooks/usePolling';
 import { getWorkerBookings, updateBookingStatus } from '../api/bookings';
 import { errorMessage } from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 import { formatPrice } from '../utils/format';
 import { scheduleKey } from '../utils/bookings';
 
 // Worker's accepted and in-progress jobs, plus recent history.
 export default function WorkerJobs() {
+  const { t } = useLanguage();
   const [busyId, setBusyId] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
   const { data, setData, error, loading } = usePolling(() => getWorkerBookings(), 30000);
 
   const act = async (booking, action) => {
-    if (action === 'complete' && !window.confirm('Mark this job as completed?')) return;
+    if (action === 'complete' && !window.confirm(t('jobs.confirmComplete'))) return;
     setBusyId(booking._id);
     try {
       const updated = await updateBookingStatus(booking._id, action);
       setData((list) => list.map((b) => (b._id === updated._id ? updated : b)));
     } catch (err) {
-      window.alert(errorMessage(err, 'Could not update the job.'));
+      window.alert(errorMessage(err, t('jobs.updateFailed')));
     } finally {
       setBusyId(null);
     }
@@ -37,17 +39,17 @@ export default function WorkerJobs() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="font-display text-3xl sm:text-4xl text-navy">My jobs</h1>
+        <h1 className="font-display text-3xl sm:text-4xl text-navy">{t('requests.myJobs')}</h1>
         <Link to="/worker/dashboard" className={buttonStyles.ghost}>
-          ← Incoming requests
+          ← {t('requests.title')}
         </Link>
       </div>
 
       {data && (
         <div className="mt-6 grid grid-cols-3 gap-3">
-          <Stat label="In progress" value={inProgress.length} />
-          <Stat label="Upcoming" value={accepted.length} />
-          <Stat label="Earned" value={formatPrice(earned)} />
+          <Stat label={t('booking.status.in_progress')} value={inProgress.length} />
+          <Stat label={t('jobs.upcoming')} value={accepted.length} />
+          <Stat label={t('jobs.earned')} value={formatPrice(earned)} />
         </div>
       )}
 
@@ -56,21 +58,21 @@ export default function WorkerJobs() {
 
       {data && (
         <>
-          <Section title="In progress" empty="Nothing in progress.">
+          <Section title={t('booking.status.in_progress')} empty={t('jobs.noneInProgress')}>
             {inProgress.map((b) => (
               <BookingCard key={b._id} booking={b} viewer="worker" showMap>
                 <button type="button" className={buttonStyles.success} disabled={busyId === b._id} onClick={() => act(b, 'complete')}>
-                  {busyId === b._id ? 'Saving…' : '✓ Mark as completed'}
+                  {busyId === b._id ? t('common.saving') : `✓ ${t('jobs.markCompleted')}`}
                 </button>
               </BookingCard>
             ))}
           </Section>
 
-          <Section title="Upcoming" empty="No upcoming jobs. Accepted requests appear here.">
+          <Section title={t('jobs.upcoming')} empty={t('jobs.noneUpcoming')}>
             {accepted.map((b) => (
               <BookingCard key={b._id} booking={b} viewer="worker" showMap>
                 <button type="button" className={buttonStyles.primary} disabled={busyId === b._id} onClick={() => act(b, 'start')}>
-                  {busyId === b._id ? 'Starting…' : '▶ Start job'}
+                  {busyId === b._id ? t('jobs.starting') : `▶ ${t('jobs.start')}`}
                 </button>
               </BookingCard>
             ))}
@@ -83,12 +85,12 @@ export default function WorkerJobs() {
               className="text-sm font-medium text-blue-600 hover:underline"
               aria-expanded={showHistory}
             >
-              {showHistory ? '▾ Hide' : '▸ Show'} past jobs ({history.length})
+              {showHistory ? '▾' : '▸'} {t(showHistory ? 'jobs.hidePast' : 'jobs.showPast', { count: history.length })}
             </button>
             {showHistory && (
               <div className="mt-4 space-y-4">
                 {history.length === 0 ? (
-                  <p className="text-sm text-slate-500">No past jobs yet.</p>
+                  <p className="text-sm text-slate-500">{t('jobs.nonePast')}</p>
                 ) : (
                   history.map((b) => <BookingCard key={b._id} booking={b} viewer="worker" />)
                 )}

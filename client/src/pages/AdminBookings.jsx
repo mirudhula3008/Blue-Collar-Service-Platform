@@ -6,31 +6,34 @@ import { FilterChips, Pager } from '../components/AdminUi';
 import { listAllBookings } from '../api/admin';
 import { errorMessage } from '../api/client';
 import { formatPrice } from '../utils/format';
-import { PAYMENT_METHOD_LABEL, formatScheduleDate, formatTime } from '../utils/bookings';
+import { formatScheduleDate, formatTime } from '../utils/bookings';
+import { useLanguage } from '../context/LanguageContext';
 
 const FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'requested', label: 'Requested' },
-  { id: 'accepted', label: 'Accepted' },
-  { id: 'in_progress', label: 'In progress' },
-  { id: 'completed', label: 'Completed' },
-  { id: 'cancelled', label: 'Cancelled' },
+  { id: 'all', label: 'admin.all' },
+  { id: 'requested', label: 'booking.status.requested' },
+  { id: 'accepted', label: 'booking.status.accepted' },
+  { id: 'in_progress', label: 'booking.status.in_progress' },
+  { id: 'completed', label: 'booking.status.completed' },
+  { id: 'cancelled', label: 'booking.status.cancelled' },
 ];
 
 function PaymentCell({ b }) {
+  const { t } = useLanguage();
   if (b.paymentStatus === 'paid') {
     return (
       <span className={`badge ${b.paymentMethod === 'cash' ? 'badge-negotiable' : 'badge-verified'}`}>
-        {b.paymentMethod === 'cash' ? 'Cash' : `Paid · ${PAYMENT_METHOD_LABEL[b.paymentMethod] || ''}`}
+        {b.paymentMethod === 'cash' ? t('booking.methods.cash') : t('booking.paidVia', { method: t(`booking.methods.${b.paymentMethod || 'online'}`) })}
       </span>
     );
   }
-  if (b.paymentStatus === 'refunded') return <span className="badge badge-busy">Refunded</span>;
-  return <span className="badge badge-outline">Unpaid</span>;
+  if (b.paymentStatus === 'refunded') return <span className="badge badge-busy">{t('booking.refunded')}</span>;
+  return <span className="badge badge-outline">{t('booking.unpaid')}</span>;
 }
 
 // /admin/bookings
 export default function AdminBookings() {
+  const { t } = useLanguage();
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
   const [data, setData] = useState(null);
@@ -40,17 +43,17 @@ export default function AdminBookings() {
     let cancelled = false;
     listAllBookings({ status, page, limit: 20 })
       .then((res) => !cancelled && (setData(res), setError(null)))
-      .catch((err) => !cancelled && setError(errorMessage(err, 'Could not load bookings.')));
+      .catch((err) => !cancelled && setError(errorMessage(err, t('common.loadError'))));
     return () => {
       cancelled = true;
     };
   }, [status, page]);
 
   return (
-    <AdminLayout title="Bookings">
+    <AdminLayout title={t('nav.bookings')}>
       <FilterChips
-        label="Booking status"
-        options={FILTERS}
+        label={t('admin.bookingStatus')}
+        options={FILTERS.map((f) => ({ ...f, label: t(f.label) }))}
         value={status}
         onChange={(v) => {
           setStatus(v);
@@ -63,19 +66,19 @@ export default function AdminBookings() {
         {!data ? (
           <div className="m-5 h-64 animate-pulse rounded-xl bg-slate-100" />
         ) : data.bookings.length === 0 ? (
-          <p className="p-8 text-center text-slate-500">No bookings with this status.</p>
+          <p className="p-8 text-center text-slate-500">{t('admin.noBookings')}</p>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="px-5 py-3">When</th>
-                    <th className="px-5 py-3">Service</th>
-                    <th className="px-5 py-3">Customer → Worker</th>
-                    <th className="px-5 py-3 text-right">Amount</th>
-                    <th className="px-5 py-3">Payment</th>
-                    <th className="px-5 py-3">Status</th>
+                    <th className="px-5 py-3">{t('payment.when')}</th>
+                    <th className="px-5 py-3">{t('payment.service')}</th>
+                    <th className="px-5 py-3">{t('admin.customerToWorker')}</th>
+                    <th className="px-5 py-3 text-right">{t('payment.amount')}</th>
+                    <th className="px-5 py-3">{t('payment.title')}</th>
+                    <th className="px-5 py-3">{t('admin.statusCol')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -87,7 +90,7 @@ export default function AdminBookings() {
                       </td>
                       <td className="px-5 py-3">
                         <p className="font-medium text-navy">{b.serviceName}</p>
-                        <p className="text-xs capitalize text-slate-500">{b.serviceCategory}</p>
+                        <p className="text-xs text-slate-500">{t(`services.${b.serviceCategory}`)}</p>
                       </td>
                       <td className="px-5 py-3 text-slate-600">
                         {b.customerId?.name || '—'} →{' '}

@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import StarRating from './StarRating';
 import { getReviewsForWorker } from '../api/reviews';
 import { formatDate } from '../utils/format';
+import { useLanguage } from '../context/LanguageContext';
 
 const PER_PAGE = 5;
 
 // Rating summary + paginated reviews for one worker. Used on the worker detail
 // page (Module 2) and the worker's own Reviews tab.
 export default function ReviewList({ workerId }) {
+  const { t } = useLanguage();
   const [data, setData] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [page, setPage] = useState(1);
@@ -28,14 +30,14 @@ export default function ReviewList({ workerId }) {
         setData(res);
         setReviews((prev) => (page === 1 ? res.reviews : [...prev, ...res.reviews]));
       })
-      .catch(() => !cancelled && setError('Could not load reviews.'))
+      .catch(() => !cancelled && setError('review.loadFailed'))
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
     };
   }, [workerId, page]);
 
-  if (error) return <p className="text-sm text-red-600">{error}</p>;
+  if (error) return <p className="text-sm text-red-600">{t(error)}</p>;
   if (!data) return <div className="h-32 animate-pulse rounded-xl bg-slate-100" />;
 
   return (
@@ -43,7 +45,7 @@ export default function ReviewList({ workerId }) {
       <RatingSummary averageRating={data.averageRating} total={data.total} breakdown={data.breakdown} />
 
       {data.total === 0 ? (
-        <p className="text-slate-500">No reviews yet.</p>
+        <p className="text-slate-500">{t('review.none')}</p>
       ) : (
         <ul className="divide-y divide-slate-100">
           {reviews.map((r) => (
@@ -58,7 +60,7 @@ export default function ReviewList({ workerId }) {
                   className="h-9 w-9 rounded-full bg-slate-100 object-cover"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-slate-800">{r.customerId?.name || 'Customer'}</p>
+                  <p className="truncate font-medium text-slate-800">{r.customerId?.name || t('nav.roles.customer')}</p>
                   <div className="flex items-center gap-2">
                     <StarRating value={r.rating} size="sm" />
                     <span className="text-xs text-slate-400">{formatDate(r.createdAt)}</span>
@@ -78,7 +80,7 @@ export default function ReviewList({ workerId }) {
           disabled={loading}
           className="text-sm font-medium text-blue-600 hover:underline disabled:opacity-50"
         >
-          {loading ? 'Loading…' : 'Show more reviews'}
+          {loading ? t('common.loading') : t('review.showMore')}
         </button>
       )}
     </div>
@@ -86,13 +88,14 @@ export default function ReviewList({ workerId }) {
 }
 
 function RatingSummary({ averageRating, total, breakdown }) {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
       <div className="text-center sm:w-36">
         <p className="text-4xl font-bold text-slate-900">{total ? averageRating.toFixed(1) : '–'}</p>
         <StarRating value={averageRating} size="sm" />
         <p className="text-xs text-slate-500">
-          {total} review{total === 1 ? '' : 's'}
+          {t('review.count', { count: total })}
         </p>
       </div>
       <div className="flex-1 space-y-1">

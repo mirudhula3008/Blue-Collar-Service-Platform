@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { translateServerMessage } from './serverMessages';
+import { translate } from '../context/LanguageContext';
 
 // Shared axios instance. Each module keeps its own calls in a separate
 // file under src/api/ so this file stays identical across branches.
@@ -17,7 +19,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const errorMessage = (err, fallback = 'Something went wrong') =>
+export const errorMessage = (err, fallback = translate('common.error')) =>
   err?.response?.data?.message || fallback;
 
 export default api;

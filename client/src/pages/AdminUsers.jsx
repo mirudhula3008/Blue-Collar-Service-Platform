@@ -5,12 +5,14 @@ import { RoleBadge } from './AdminDashboard';
 import { listUsers, setWorkerVerification } from '../api/admin';
 import { errorMessage } from '../api/client';
 import { formatDate } from '../utils/format';
+import { useLanguage } from '../context/LanguageContext';
 
 const PER_PAGE = 20;
 const selectClass =
   'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100';
 
 export default function AdminUsers() {
+  const { t } = useLanguage();
   const [params, setParams] = useSearchParams();
   const role = params.get('role') || '';
   const verified = params.get('verified') || '';
@@ -56,7 +58,7 @@ export default function AdminUsers() {
           setError(null);
         }
       })
-      .catch((err) => !cancelled && setError(errorMessage(err, 'Could not load users.')))
+      .catch((err) => !cancelled && setError(errorMessage(err, t('common.loadError'))))
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
@@ -66,8 +68,8 @@ export default function AdminUsers() {
 
   const toggleVerification = async (user) => {
     const next = !user.isVerified;
-    if (next && !user.idProofUrl && !window.confirm(`${user.name} has not uploaded an ID proof. Verify anyway?`)) return;
-    if (!next && !window.confirm(`Remove verification for ${user.name}? They will disappear from customer search.`)) return;
+    if (next && !user.idProofUrl && !window.confirm(t('admin.verifyWithoutId', { name: user.name }))) return;
+    if (!next && !window.confirm(t('admin.confirmUnverify', { name: user.name }))) return;
 
     setBusyId(user._id);
     try {
@@ -77,38 +79,38 @@ export default function AdminUsers() {
         users: d.users.map((u) => (u._id === updated._id ? { ...u, isVerified: updated.isVerified } : u)),
       }));
     } catch (err) {
-      window.alert(errorMessage(err, 'Could not update verification.'));
+      window.alert(errorMessage(err, t('admin.changeFailed')));
     } finally {
       setBusyId(null);
     }
   };
 
   return (
-    <AdminLayout title="Users & verification">
+    <AdminLayout title={t('admin.verificationTitle')}>
       <div className="flex flex-col gap-3 sm:flex-row">
         <input
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search name, email or phone"
-          aria-label="Search users"
+          placeholder={t('admin.searchPlaceholder')}
+          aria-label={t('admin.searchPlaceholder')}
           className={`${selectClass} sm:flex-1`}
         />
-        <select value={role} onChange={(e) => updateParam('role', e.target.value)} className={selectClass} aria-label="Filter by role">
-          <option value="">All roles</option>
-          <option value="customer">Customers</option>
-          <option value="worker">Workers</option>
-          <option value="admin">Admins</option>
+        <select value={role} onChange={(e) => updateParam('role', e.target.value)} className={selectClass} aria-label={t('auth.role')}>
+          <option value="">{t('admin.allRoles')}</option>
+          <option value="customer">{t('nav.roles.customer')}</option>
+          <option value="worker">{t('nav.roles.worker')}</option>
+          <option value="admin">{t('nav.roles.admin')}</option>
         </select>
         <select
           value={verified}
           onChange={(e) => updateParam('verified', e.target.value)}
           className={selectClass}
-          aria-label="Filter by verification"
+          aria-label={t('admin.verification')}
         >
-          <option value="">Any verification</option>
-          <option value="false">Pending verification</option>
-          <option value="true">Verified workers</option>
+          <option value="">{t('admin.anyVerification')}</option>
+          <option value="false">{t('admin.pendingVerification')}</option>
+          <option value="true">{t('admin.verifiedWorkers')}</option>
         </select>
       </div>
 
@@ -119,7 +121,7 @@ export default function AdminUsers() {
 
         {data && data.users.length === 0 && (
           <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
-            No users match these filters.
+            {t('admin.noUsers')}
           </div>
         )}
 
@@ -130,13 +132,13 @@ export default function AdminUsers() {
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="px-4 py-3">User</th>
-                    <th className="px-4 py-3">Role</th>
-                    <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3">Category</th>
-                    <th className="px-4 py-3">ID proof</th>
-                    <th className="px-4 py-3">Joined</th>
-                    <th className="px-4 py-3 text-right">Verification</th>
+                    <th className="px-4 py-3">{t('admin.user')}</th>
+                    <th className="px-4 py-3">{t('auth.role')}</th>
+                    <th className="px-4 py-3">{t('booking.phone')}</th>
+                    <th className="px-4 py-3">{t('filter.category')}</th>
+                    <th className="px-4 py-3">{t('admin.idProof')}</th>
+                    <th className="px-4 py-3">{t('admin.joined')}</th>
+                    <th className="px-4 py-3 text-right">{t('admin.verification')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -150,7 +152,7 @@ export default function AdminUsers() {
                         <RoleBadge role={u.role} />
                       </td>
                       <td className="px-4 py-3 text-slate-600">{u.phone}</td>
-                      <td className="px-4 py-3 capitalize text-slate-600">{u.serviceCategory || '—'}</td>
+                      <td className="px-4 py-3 text-slate-600">{u.serviceCategory ? t(`services.${u.serviceCategory}`) : '—'}</td>
                       <td className="px-4 py-3">
                         <IdProofLink user={u} />
                       </td>
@@ -180,7 +182,7 @@ export default function AdminUsers() {
                   </div>
                   {u.role === 'worker' && (
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-                      <span className="capitalize text-slate-600">{u.serviceCategory}</span>
+                      <span className="text-slate-600">{t(`services.${u.serviceCategory}`)}</span>
                       <IdProofLink user={u} />
                       <VerifyControl user={u} busy={busyId === u._id} onToggle={toggleVerification} />
                     </div>
@@ -191,7 +193,7 @@ export default function AdminUsers() {
 
             <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
               <span>
-                {data.total} user{data.total === 1 ? '' : 's'} · page {data.page} of {Math.max(data.pages, 1)}
+                {data.total} {t('admin.nouns.user')} · {t('common.pageOf', { page: data.page, pages: Math.max(data.pages, 1) })}
               </span>
               <div className="flex gap-2">
                 <button
@@ -200,7 +202,7 @@ export default function AdminUsers() {
                   onClick={() => updateParam('page', String(page - 1))}
                   className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 disabled:opacity-40"
                 >
-                  ← Prev
+                  {t('common.prev')}
                 </button>
                 <button
                   type="button"
@@ -208,7 +210,7 @@ export default function AdminUsers() {
                   onClick={() => updateParam('page', String(page + 1))}
                   className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 disabled:opacity-40"
                 >
-                  Next →
+                  {t('common.nextPage')}
                 </button>
               </div>
             </div>
@@ -220,16 +222,18 @@ export default function AdminUsers() {
 }
 
 function IdProofLink({ user }) {
+  const { t } = useLanguage();
   if (user.role !== 'worker') return <span className="text-slate-300">—</span>;
-  if (!user.idProofUrl) return <span className="text-xs font-medium text-rose-600">Not uploaded</span>;
+  if (!user.idProofUrl) return <span className="text-xs font-medium text-rose-600">{t('admin.notUploaded')}</span>;
   return (
     <a href={user.idProofUrl} target="_blank" rel="noreferrer" className="font-medium text-blue-600 hover:underline">
-      View ↗
+      {t('admin.view')}
     </a>
   );
 }
 
 function VerifyControl({ user, busy, onToggle }) {
+  const { t } = useLanguage();
   if (user.role !== 'worker') return <span className="text-slate-300">—</span>;
   return (
     <div className="inline-flex items-center gap-2">
@@ -238,7 +242,7 @@ function VerifyControl({ user, busy, onToggle }) {
           user.isVerified ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
         }`}
       >
-        {user.isVerified ? 'Verified' : 'Pending'}
+        {user.isVerified ? t('worker.verified') : t('earnings.payoutPending')}
       </span>
       <button
         type="button"
@@ -250,7 +254,7 @@ function VerifyControl({ user, busy, onToggle }) {
             : 'bg-emerald-600 text-white hover:bg-emerald-700'
         }`}
       >
-        {busy ? '…' : user.isVerified ? 'Unverify' : 'Verify'}
+        {busy ? '…' : user.isVerified ? t('admin.unverify') : t('admin.verify')}
       </button>
     </div>
   );

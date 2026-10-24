@@ -7,6 +7,7 @@ import WorkerMap from '../components/WorkerMap';
 import useGeolocation from '../hooks/useGeolocation';
 import { useLanguage } from '../context/LanguageContext';
 import { searchWorkers } from '../api/discovery';
+import { errorMessage } from '../api/client';
 import { categoryIds } from '../data/categories';
 
 export default function WorkerListing() {
@@ -43,7 +44,7 @@ export default function WorkerListing() {
         available: available || undefined,
       })
         .then((data) => setWorkers(data.workers))
-        .catch((err) => setError(err.response?.data?.message || t('discovery.loadError')))
+        .catch((err) => setError(errorMessage(err, t('discovery.loadError'))))
         .finally(() => setLoading(false));
     }, 300);
 

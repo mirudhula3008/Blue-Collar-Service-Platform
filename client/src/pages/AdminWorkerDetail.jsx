@@ -7,12 +7,14 @@ import { ACCOUNT_STATUS, AccountStatusBadge, dateTime, shortDate } from '../comp
 import { getWorkerAdminProfile, setWorkerStatus, uploadEvidence } from '../api/admin';
 import { errorMessage } from '../api/client';
 import { formatPrice } from '../utils/format';
+import { useLanguage } from '../context/LanguageContext';
 
 const MIN_REASON = 10;
 const RESTRICTIVE = ['suspended', 'blocked'];
 
 // /admin/workers/:id — full profile, account status control and the audit trail.
 export default function AdminWorkerDetail() {
+  const { t } = useLanguage();
   const { id } = useParams();
   const [worker, setWorker] = useState(null);
   const [error, setError] = useState(null);
@@ -24,27 +26,27 @@ export default function AdminWorkerDetail() {
         setWorker(w);
         setError(null);
       })
-      .catch((err) => setError(errorMessage(err, 'Could not load this worker.')));
+      .catch((err) => setError(errorMessage(err, t('worker.loadError'))));
   }, [id]);
 
   useEffect(load, [load]);
 
   const back = (
     <Link to="/admin/workers" className="btn btn-ghost btn-sm">
-      <ArrowLeft size={16} /> All workers
+      <ArrowLeft size={16} /> {t('admin.allWorkers')}
     </Link>
   );
 
   if (error) {
     return (
-      <AdminLayout title="Worker" actions={back}>
+      <AdminLayout title={t('nav.roles.worker')} actions={back}>
         <p className="rounded-xl bg-rose-50 p-4 text-rose-700">{error}</p>
       </AdminLayout>
     );
   }
   if (!worker) {
     return (
-      <AdminLayout title="Worker" actions={back}>
+      <AdminLayout title={t('nav.roles.worker')} actions={back}>
         <div className="h-72 animate-pulse rounded-2xl bg-slate-100" />
       </AdminLayout>
     );
@@ -59,7 +61,7 @@ export default function AdminWorkerDetail() {
           <span className="flex gap-2">
             <Check size={18} className="flex-none" /> {notice}
           </span>
-          <button type="button" onClick={() => setNotice(null)} aria-label="Dismiss" className="text-emerald-700">
+          <button type="button" onClick={() => setNotice(null)} aria-label={t('common.dismiss')} className="text-emerald-700">
             <X size={16} />
           </button>
         </div>
@@ -80,19 +82,19 @@ export default function AdminWorkerDetail() {
               <div className="flex flex-wrap items-center gap-2">
                 <AccountStatusBadge status={worker.accountStatus} />
                 <span className={`badge ${worker.isVerified ? 'badge-verified' : 'badge-negotiable'}`}>
-                  {worker.isVerified ? 'ID verified' : 'ID not verified'}
+                  {worker.isVerified ? t('admin.idVerified') : t('admin.idNotVerified')}
                 </span>
-                <span className="badge badge-outline capitalize">{worker.serviceCategory}</span>
+                <span className="badge badge-outline">{t(`services.${worker.serviceCategory}`)}</span>
               </div>
               <dl className="mt-3 grid gap-x-6 gap-y-1.5 text-sm text-slate-600 sm:grid-cols-2">
                 <Info Icon={Mail} value={worker.email} />
                 <Info Icon={Phone} value={worker.phone} />
-                <Info Icon={MapPin} value={worker.address || 'No address'} />
-                <Info Icon={History} value={`Joined ${shortDate(worker.createdAt)}`} />
+                <Info Icon={MapPin} value={worker.address || t('admin.noAddress')} />
+                <Info Icon={History} value={`${t('admin.joined')}: ${shortDate(worker.createdAt)}`} />
               </dl>
               {worker.idProofUrl && (
                 <a href={worker.idProofUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-medium text-blue-600 hover:underline">
-                  View ID proof ↗
+                  {t('admin.viewIdProof')}
                 </a>
               )}
             </div>
@@ -100,20 +102,28 @@ export default function AdminWorkerDetail() {
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Stat label="Completed jobs" value={stats.completedJobs} />
-            <Stat label="Cancelled" value={stats.cancelledJobs} />
-            <Stat label="Rating" value={stats.averageRating ? `${stats.averageRating.toFixed(1)} ★` : '—'} sub={`${stats.totalReviews} reviews`} />
-            <Stat label="Earnings" value={formatPrice(stats.totalEarnings)} sub={`${formatPrice(stats.commissionPaid)} commission`} />
+            <Stat label={t('worker.completedJobs')} value={stats.completedJobs} />
+            <Stat label={t('booking.status.cancelled')} value={stats.cancelledJobs} />
+            <Stat
+              label={t('worker.rating')}
+              value={stats.averageRating ? `${stats.averageRating.toFixed(1)} ★` : '—'}
+              sub={t('review.count', { count: stats.totalReviews })}
+            />
+            <Stat
+              label={t('nav.earnings')}
+              value={formatPrice(stats.totalEarnings)}
+              sub={t('admin.commissionDetail', { amount: formatPrice(stats.commissionPaid) })}
+            />
           </div>
 
           {/* Audit trail */}
           <section className="card p-6">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="font-display text-2xl text-navy">Status history</h2>
-              <p className="text-xs text-slate-400">Append-only. Entries can’t be edited or deleted.</p>
+              <h2 className="font-display text-2xl text-navy">{t('admin.statusHistory')}</h2>
+              <p className="text-xs text-slate-400">{t('admin.appendOnly')}</p>
             </div>
             {worker.statusHistory.length === 0 ? (
-              <p className="mt-4 text-sm text-slate-500">No status changes yet. This worker has been active since joining.</p>
+              <p className="mt-4 text-sm text-slate-500">{t('admin.noHistory')}</p>
             ) : (
               <ol className="mt-5 space-y-5 border-l-2 border-slate-100 pl-5">
                 {worker.statusHistory.map((h) => (
@@ -122,7 +132,7 @@ export default function AdminWorkerDetail() {
                     <div className="flex flex-wrap items-center gap-2">
                       <AccountStatusBadge status={h.status} />
                       <span className="text-xs text-slate-400">
-                        {dateTime(h.changedAt)} · by {h.changedBy?.name || 'Admin'}
+                        {dateTime(h.changedAt)} · {t('admin.by', { name: h.changedBy?.name || t('nav.roles.admin') })}
                       </span>
                     </div>
                     <p className="mt-1.5 whitespace-pre-line text-sm text-slate-700">{h.reason}</p>
@@ -136,7 +146,7 @@ export default function AdminWorkerDetail() {
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-blue-600 hover:border-blue-400"
                           >
-                            <Paperclip size={12} /> Evidence {i + 1}
+                            <Paperclip size={12} /> {t('admin.evidenceN', { n: i + 1 })}
                           </a>
                         ))}
                       </div>
@@ -149,9 +159,9 @@ export default function AdminWorkerDetail() {
 
           {/* Recent bookings */}
           <section className="card overflow-hidden">
-            <h2 className="border-b border-slate-100 px-5 py-4 font-display text-2xl text-navy">Recent bookings</h2>
+            <h2 className="border-b border-slate-100 px-5 py-4 font-display text-2xl text-navy">{t('admin.recentBookings')}</h2>
             {worker.recentBookings.length === 0 ? (
-              <p className="p-6 text-sm text-slate-500">No bookings yet.</p>
+              <p className="p-6 text-sm text-slate-500">{t('booking.noBookings')}</p>
             ) : (
               <ul className="divide-y divide-slate-100">
                 {worker.recentBookings.map((b) => (
@@ -159,7 +169,7 @@ export default function AdminWorkerDetail() {
                     <div className="min-w-0">
                       <p className="font-medium text-navy">{b.serviceName}</p>
                       <p className="text-xs text-slate-500">
-                        {b.customerId?.name || 'Customer'} · {shortDate(b.scheduledDate)}
+                        {b.customerId?.name || t('nav.roles.customer')} · {shortDate(b.scheduledDate)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -174,15 +184,15 @@ export default function AdminWorkerDetail() {
 
           {/* Recent reviews */}
           <section className="card p-6">
-            <h2 className="font-display text-2xl text-navy">Recent reviews</h2>
+            <h2 className="font-display text-2xl text-navy">{t('admin.recentReviews')}</h2>
             {worker.recentReviews.length === 0 ? (
-              <p className="mt-3 text-sm text-slate-500">No reviews yet.</p>
+              <p className="mt-3 text-sm text-slate-500">{t('review.none')}</p>
             ) : (
               <ul className="mt-4 space-y-4">
                 {worker.recentReviews.map((r) => (
                   <li key={r._id} className="border-b border-slate-100 pb-4 last:border-0 last:pb-0">
                     <div className="flex items-center justify-between gap-2 text-sm">
-                      <span className="font-medium text-navy">{r.customerId?.name || 'Customer'}</span>
+                      <span className="font-medium text-navy">{r.customerId?.name || t('nav.roles.customer')}</span>
                       <span className="text-amber-500" aria-label={`${r.rating} out of 5`}>
                         {'★'.repeat(r.rating)}
                         <span className="text-slate-200">{'★'.repeat(5 - r.rating)}</span>
@@ -202,9 +212,9 @@ export default function AdminWorkerDetail() {
           <StatusChanger
             worker={worker}
             onChanged={(result) => {
-              const parts = [`Status changed to ${ACCOUNT_STATUS[result.worker.accountStatus].label.toLowerCase()}.`];
-              if (result.cancelledBookings) parts.push(`${result.cancelledBookings} booking(s) cancelled.`);
-              if (result.refundedPayments) parts.push(`${result.refundedPayments} payment(s) refunded.`);
+              const parts = [t('admin.statusChanged', { status: t(ACCOUNT_STATUS[result.worker.accountStatus].label) })];
+              if (result.cancelledBookings) parts.push(t('admin.bookingsCancelled', { count: result.cancelledBookings }));
+              if (result.refundedPayments) parts.push(t('admin.paymentsRefunded', { count: result.refundedPayments }));
               setNotice(parts.join(' '));
               load();
             }}
@@ -216,6 +226,7 @@ export default function AdminWorkerDetail() {
 }
 
 function StatusChanger({ worker, onChanged }) {
+  const { t } = useLanguage();
   const [status, setStatus] = useState('');
   const [reason, setReason] = useState('');
   const [evidence, setEvidence] = useState([]);
@@ -232,7 +243,7 @@ function StatusChanger({ worker, onChanged }) {
 
   const addLink = () => {
     const url = link.trim();
-    if (!/^https?:\/\/\S+$/i.test(url)) return setError('Evidence links must start with http:// or https://');
+    if (!/^https?:\/\/\S+$/i.test(url)) return setError(t('server.badEvidence'));
     if (!evidence.includes(url)) setEvidence([...evidence, url]);
     setLink('');
     setError(null);
@@ -248,7 +259,7 @@ function StatusChanger({ worker, onChanged }) {
       const url = await uploadEvidence(file);
       setEvidence((list) => [...list, url]);
     } catch (err) {
-      setError(errorMessage(err, 'Could not upload that file.'));
+      setError(errorMessage(err, t('admin.uploadFailed')));
     } finally {
       setUploading(false);
     }
@@ -258,7 +269,7 @@ function StatusChanger({ worker, onChanged }) {
     e.preventDefault();
     if (!valid) return;
     if (RESTRICTIVE.includes(status)) {
-      const msg = `${ACCOUNT_STATUS[status].label.replace(/ed$/, '')} ${worker.name}? Their pending and accepted bookings will be cancelled and any payments refunded.`;
+      const msg = t('admin.confirmRestrict', { status: t(ACCOUNT_STATUS[status].label), name: worker.name });
       if (!window.confirm(msg)) return;
     }
     setSaving(true);
@@ -270,7 +281,7 @@ function StatusChanger({ worker, onChanged }) {
       setEvidence([]);
       onChanged(result);
     } catch (err) {
-      setError(errorMessage(err, 'Could not change the status.'));
+      setError(errorMessage(err, t('admin.changeFailed')));
     } finally {
       setSaving(false);
     }
@@ -278,13 +289,13 @@ function StatusChanger({ worker, onChanged }) {
 
   return (
     <form onSubmit={submit} className="card p-6">
-      <h2 className="font-display text-2xl text-navy">Change account status</h2>
+      <h2 className="font-display text-2xl text-navy">{t('admin.changeStatus')}</h2>
       <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-        Currently <AccountStatusBadge status={worker.accountStatus} />
+        {t('admin.currently')} <AccountStatusBadge status={worker.accountStatus} />
       </p>
 
       <fieldset className="mt-5 space-y-2">
-        <legend className="mb-2 text-sm font-semibold text-navy">New status</legend>
+        <legend className="mb-2 text-sm font-semibold text-navy">{t('admin.newStatus')}</legend>
         {options.map((s) => {
           const meta = ACCOUNT_STATUS[s];
           const selected = status === s;
@@ -297,8 +308,8 @@ function StatusChanger({ worker, onChanged }) {
             >
               <input type="radio" name="status" value={s} checked={selected} onChange={() => setStatus(s)} className="mt-1 h-4 w-4 accent-blue-600" />
               <span>
-                <span className="block text-sm font-semibold text-navy">{meta.label}</span>
-                <span className="block text-xs text-slate-500">{meta.help}</span>
+                <span className="block text-sm font-semibold text-navy">{t(meta.label)}</span>
+                <span className="block text-xs text-slate-500">{t(meta.help)}</span>
               </span>
             </label>
           );
@@ -307,7 +318,7 @@ function StatusChanger({ worker, onChanged }) {
 
       <label className="mt-5 block">
         <span className="text-sm font-semibold text-navy">
-          Reason <span className="text-rose-500">*</span>
+          {t('admin.reason')} <span className="text-rose-500">*</span>
         </span>
         <textarea
           rows={4}
@@ -315,15 +326,17 @@ function StatusChanger({ worker, onChanged }) {
           className="input mt-1"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="What happened, which booking, what was tried. This is shown in the audit log and used for appeals."
+          placeholder={t('admin.reasonPlaceholder')}
         />
         <span className={`mt-1 block text-xs ${trimmed.length >= MIN_REASON ? 'text-emerald-600' : 'text-slate-400'}`}>
-          {trimmed.length < MIN_REASON ? `${MIN_REASON - trimmed.length} more characters needed` : `${trimmed.length} characters ✓`}
+          {trimmed.length < MIN_REASON
+            ? t('admin.moreChars', { count: MIN_REASON - trimmed.length })
+            : t('admin.charsOk', { count: trimmed.length })}
         </span>
       </label>
 
       <div className="mt-4">
-        <span className="text-sm font-semibold text-navy">Evidence (optional)</span>
+        <span className="text-sm font-semibold text-navy">{t('admin.evidenceOptional')}</span>
         <div className="mt-1 flex gap-2">
           <input
             className="input"
@@ -332,7 +345,7 @@ function StatusChanger({ worker, onChanged }) {
             onChange={(e) => setLink(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addLink())}
           />
-          <button type="button" className="btn btn-secondary btn-sm flex-none" onClick={addLink} disabled={!link.trim()} title="Add link">
+          <button type="button" className="btn btn-secondary btn-sm flex-none" onClick={addLink} disabled={!link.trim()} title={t('admin.addLink')}>
             <Link2 size={16} />
           </button>
           <button
@@ -340,7 +353,7 @@ function StatusChanger({ worker, onChanged }) {
             className="btn btn-secondary btn-sm flex-none"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            title="Upload photo or screenshot"
+            title={t('admin.uploadEvidence')}
           >
             {uploading ? '…' : <Paperclip size={16} />}
           </button>
@@ -351,9 +364,9 @@ function StatusChanger({ worker, onChanged }) {
             {evidence.map((url, i) => (
               <li key={url} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-1.5 text-xs">
                 <a href={url} target="_blank" rel="noreferrer" className="truncate text-blue-600 hover:underline">
-                  Evidence {i + 1}: {url.replace(/^https?:\/\//, '')}
+                  {t('admin.evidenceN', { n: i + 1 })}: {url.replace(/^https?:\/\//, '')}
                 </a>
-                <button type="button" onClick={() => setEvidence(evidence.filter((u) => u !== url))} aria-label="Remove evidence">
+                <button type="button" onClick={() => setEvidence(evidence.filter((u) => u !== url))} aria-label={t('common.delete')}>
                   <X size={14} className="text-slate-400" />
                 </button>
               </li>
@@ -365,8 +378,8 @@ function StatusChanger({ worker, onChanged }) {
       {RESTRICTIVE.includes(status) && (
         <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
           {pendingToCancel > 0
-            ? `${pendingToCancel} pending or accepted booking(s) will be cancelled and refunded.`
-            : 'Any pending or accepted bookings will be cancelled and refunded.'}
+            ? t('admin.willCancel', { count: pendingToCancel })
+            : t('admin.willCancelAny')}
         </p>
       )}
 
@@ -377,7 +390,7 @@ function StatusChanger({ worker, onChanged }) {
         disabled={!valid || saving}
         className={`btn mt-5 w-full py-3 ${RESTRICTIVE.includes(status) ? 'bg-rose-600 text-white hover:bg-rose-700' : 'btn-primary'}`}
       >
-        {saving ? 'Saving…' : status ? `Set to ${ACCOUNT_STATUS[status].label.toLowerCase()}` : 'Choose a new status'}
+        {saving ? t('common.saving') : status ? t('admin.setTo', { status: t(ACCOUNT_STATUS[status].label) }) : t('admin.chooseStatus')}
       </button>
     </form>
   );

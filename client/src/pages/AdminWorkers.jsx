@@ -6,17 +6,19 @@ import { AccountStatusBadge, FilterChips, Pager, SearchBox, shortDate, useDeboun
 import { listWorkers } from '../api/admin';
 import { errorMessage } from '../api/client';
 import { formatPrice } from '../utils/format';
+import { useLanguage } from '../context/LanguageContext';
 
 const FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'active', label: 'Active' },
-  { id: 'under_review', label: 'Under review' },
-  { id: 'suspended', label: 'Suspended' },
-  { id: 'blocked', label: 'Blocked' },
+  { id: 'all', label: 'admin.all' },
+  { id: 'active', label: 'admin.status.active' },
+  { id: 'under_review', label: 'admin.status.under_review' },
+  { id: 'suspended', label: 'admin.status.suspended' },
+  { id: 'blocked', label: 'admin.status.blocked' },
 ];
 
 // /admin/workers — every worker with job/earnings totals and account status.
 export default function AdminWorkers() {
+  const { t } = useLanguage();
   const [params, setParams] = useSearchParams();
   const status = params.get('status') || 'all';
   const page = Number(params.get('page')) || 1;
@@ -42,7 +44,7 @@ export default function AdminWorkers() {
     let cancelled = false;
     listWorkers({ status, search: params.get('search') || undefined, page, limit: 20 })
       .then((res) => !cancelled && (setData(res), setError(null)))
-      .catch((err) => !cancelled && setError(errorMessage(err, 'Could not load workers.')));
+      .catch((err) => !cancelled && setError(errorMessage(err, t('discovery.loadError'))));
     return () => {
       cancelled = true;
     };
@@ -50,10 +52,10 @@ export default function AdminWorkers() {
   }, [query]);
 
   return (
-    <AdminLayout title="Workers">
+    <AdminLayout title={t('nav.workers')}>
       <div className="flex flex-col gap-4">
-        <SearchBox value={search} onChange={setSearch} placeholder="Search by name, email or phone" />
-        <FilterChips label="Account status" options={FILTERS} value={status} onChange={(v) => update({ status: v })} />
+        <SearchBox value={search} onChange={setSearch} placeholder={t('admin.searchPlaceholder')} />
+        <FilterChips label={t('admin.accountStatus')} options={FILTERS.map((f) => ({ ...f, label: t(f.label) }))} value={status} onChange={(v) => update({ status: v })} />
       </div>
 
       {error && <p className="mt-4 rounded-xl bg-rose-50 p-4 text-rose-700">{error}</p>}
@@ -62,20 +64,20 @@ export default function AdminWorkers() {
         {!data ? (
           <div className="m-5 h-64 animate-pulse rounded-xl bg-slate-100" />
         ) : data.workers.length === 0 ? (
-          <p className="p-8 text-center text-slate-500">No workers match these filters.</p>
+          <p className="p-8 text-center text-slate-500">{t('admin.noWorkers')}</p>
         ) : (
           <>
             <div className="hidden overflow-x-auto md:block">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="px-5 py-3">Worker</th>
-                    <th className="px-5 py-3">Category</th>
-                    <th className="px-5 py-3">Rating</th>
-                    <th className="px-5 py-3 text-right">Jobs</th>
-                    <th className="px-5 py-3 text-right">Earnings</th>
-                    <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3">Joined</th>
+                    <th className="px-5 py-3">{t('nav.roles.worker')}</th>
+                    <th className="px-5 py-3">{t('filter.category')}</th>
+                    <th className="px-5 py-3">{t('worker.rating')}</th>
+                    <th className="px-5 py-3 text-right">{t('nav.jobs')}</th>
+                    <th className="px-5 py-3 text-right">{t('nav.earnings')}</th>
+                    <th className="px-5 py-3">{t('admin.statusCol')}</th>
+                    <th className="px-5 py-3">{t('admin.joined')}</th>
                     <th className="px-5 py-3" />
                   </tr>
                 </thead>
@@ -86,7 +88,7 @@ export default function AdminWorkers() {
                         <p className="font-medium text-navy">{w.name}</p>
                         <p className="text-xs text-slate-500">{w.email}</p>
                       </td>
-                      <td className="px-5 py-3 capitalize text-slate-600">{w.serviceCategory}</td>
+                      <td className="px-5 py-3 text-slate-600">{t(`services.${w.serviceCategory}`)}</td>
                       <td className="px-5 py-3 tabular-nums text-slate-600">
                         {w.averageRating ? `${w.averageRating.toFixed(1)} ★` : '—'}
                       </td>
@@ -98,7 +100,7 @@ export default function AdminWorkers() {
                       <td className="whitespace-nowrap px-5 py-3 text-slate-500">{shortDate(w.createdAt)}</td>
                       <td className="px-5 py-3 text-right">
                         <Link to={`/admin/workers/${w._id}`} className="btn btn-secondary btn-sm">
-                          Manage
+                          {t('admin.manage')}
                         </Link>
                       </td>
                     </tr>
@@ -116,8 +118,8 @@ export default function AdminWorkers() {
                         <p className="truncate font-medium text-navy">{w.name}</p>
                         <AccountStatusBadge status={w.accountStatus} />
                       </div>
-                      <p className="text-xs capitalize text-slate-500">
-                        {w.serviceCategory} · {w.totalJobs} jobs · {formatPrice(w.totalEarnings)}
+                      <p className="text-xs text-slate-500">
+                        {t(`services.${w.serviceCategory}`)} · {w.totalJobs} {t('earnings.jobs')} · {formatPrice(w.totalEarnings)}
                       </p>
                     </div>
                     <ChevronRight size={18} className="text-slate-400" />

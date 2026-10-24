@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { formatPrice } from '../utils/format';
+import { useLanguage } from '../context/LanguageContext';
 
 // Rounds the axis maximum up to a clean value (1, 2, 2.5, 5 × 10^n).
 function niceMax(value) {
@@ -19,6 +20,7 @@ const compact = (n) => (n >= 1000 ? `₹${(n / 1000).toFixed(n % 1000 === 0 ? 0 
  * screen-reader table of the same numbers.
  */
 export default function EarningsChart({ data, height = 224 }) {
+  const { t } = useLanguage();
   const [active, setActive] = useState(null);
   const max = niceMax(Math.max(...data.map((d) => d.earnings), 0));
   const ticks = [max, max / 2, 0];
@@ -30,9 +32,9 @@ export default function EarningsChart({ data, height = 224 }) {
       <div className="relative flex" style={{ height }}>
         {/* Y axis labels */}
         <div className="flex w-12 flex-none flex-col justify-between pb-6 pr-2 text-right text-[11px] tabular-nums text-slate-400" aria-hidden="true">
-          {ticks.map((t) => (
-            <span key={t} className="-translate-y-1/2 first:translate-y-0 last:translate-y-0">
-              {compact(t)}
+          {ticks.map((tick) => (
+            <span key={tick} className="-translate-y-1/2 first:translate-y-0 last:translate-y-0">
+              {compact(tick)}
             </span>
           ))}
         </div>
@@ -40,13 +42,13 @@ export default function EarningsChart({ data, height = 224 }) {
         <div className="relative min-w-0 flex-1">
           {/* Gridlines */}
           <div className="pointer-events-none absolute inset-x-0 bottom-6 top-0 flex flex-col justify-between" aria-hidden="true">
-            {ticks.map((t) => (
-              <div key={t} className={`border-t ${t === 0 ? 'border-slate-300' : 'border-dashed border-slate-200'}`} />
+            {ticks.map((tick) => (
+              <div key={tick} className={`border-t ${tick === 0 ? 'border-slate-300' : 'border-dashed border-slate-200'}`} />
             ))}
           </div>
 
           {/* Bars */}
-          <div className="absolute inset-0 flex items-end gap-1.5 sm:gap-3" role="img" aria-label={`Earnings: ${data.map((d) => `${d.label} ${formatPrice(d.earnings)}`).join(', ')}`}>
+          <div className="absolute inset-0 flex items-end gap-1.5 sm:gap-3" role="img" aria-label={`${t('nav.earnings')}: ${data.map((d) => `${d.label} ${formatPrice(d.earnings)}`).join(', ')}`}>
             {data.map((d, i) => {
               const pct = (d.earnings / max) * 100;
               const isActive = active === i;
@@ -59,7 +61,7 @@ export default function EarningsChart({ data, height = 224 }) {
                   onMouseLeave={() => setActive(null)}
                   onFocus={() => setActive(i)}
                   onBlur={() => setActive(null)}
-                  aria-label={`${d.label}: ${formatPrice(d.earnings)} from ${d.jobs} job${d.jobs === 1 ? '' : 's'}`}
+                  aria-label={`${d.label}: ${t('earnings.earnedJobs', { amount: formatPrice(d.earnings), count: d.jobs })}`}
                 >
                   {/* Selective direct label: the peak bar only */}
                   {i === peak && !allZero && !isActive && (
@@ -83,7 +85,7 @@ export default function EarningsChart({ data, height = 224 }) {
                       <p className="text-xs font-semibold text-slate-500">{d.label}</p>
                       <p className="mt-1 text-base font-bold tabular-nums text-navy">{formatPrice(d.earnings)}</p>
                       <p className="text-xs tabular-nums text-slate-500">
-                        Net {formatPrice(d.net)} · {d.jobs} job{d.jobs === 1 ? '' : 's'}
+                        {t('earnings.tooltip', { net: formatPrice(d.net), count: d.jobs })}
                       </p>
                     </div>
                   )}
@@ -94,16 +96,16 @@ export default function EarningsChart({ data, height = 224 }) {
         </div>
       </div>
 
-      {allZero && <p className="mt-2 text-center text-sm text-slate-400">No completed jobs in this period yet.</p>}
+      {allZero && <p className="mt-2 text-center text-sm text-slate-400">{t('earnings.noneInPeriod')}</p>}
 
       <table className="sr-only">
-        <caption>Earnings by period</caption>
+        <caption>{t('earnings.overTime')}</caption>
         <thead>
           <tr>
-            <th>Period</th>
-            <th>Earnings</th>
-            <th>Net</th>
-            <th>Jobs</th>
+            <th>{t('earnings.col.date')}</th>
+            <th>{t('nav.earnings')}</th>
+            <th>{t('earnings.col.youGet')}</th>
+            <th>{t('nav.jobs')}</th>
           </tr>
         </thead>
         <tbody>

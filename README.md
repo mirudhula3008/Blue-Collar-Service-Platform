@@ -1,7 +1,8 @@
 # Blue-Collar Service Platform
 
 A hyperlocal, on-demand platform connecting customers with nearby verified blue-collar workers
-(plumbers, electricians, carpenters, painters, cleaners). It has transparent pricing, GPS-based
+(plumbers, electricians, carpenters, painters, cleaners, appliance repair, mechanics, car and bike
+wash, and vehicle rental). It has transparent pricing, GPS-based
 discovery on a map, negotiable prices, a full booking lifecycle, and ratings and reviews.
 
 Built for the Vecnaverse Hackathon (Problem Statement 3, Social Impact).
@@ -18,7 +19,7 @@ Requires **Node.js 18+** and **MongoDB** (local, or a MongoDB Atlas connection s
 cd server
 cp .env.example .env        # set MONGO_URI and JWT_SECRET
 npm install
-npm run seed                # 15 sample workers around Chennai, 3 customers, reviews
+npm run seed                # 31 sample workers around Chennai (10 categories), 3 customers, reviews
 npm run seed:admin          # admin account from ADMIN_EMAIL / ADMIN_PASSWORD
 npm run seed:demo           # ~6 months of paid, completed jobs for the earnings and admin dashboards
 npm run dev                 # http://localhost:5000
@@ -87,9 +88,10 @@ The app supports English, Tamil (தமிழ்), Hindi (हिन्दी) an
 - Translations live in `client/src/locales/{en,ta,hi,bn}.json`, all with the same keys.
 - Components call `t('section.key')` from `useLanguage()`. `t('payment.payAmount', { amount })` fills
   `{{amount}}`. Missing keys fall back to English.
-- Translated so far: navbar, landing, login, register, customer dashboard, worker list and map, filters,
-  worker profile, payment, and booking status badges. Other pages still show English.
-- Messages from the server (for example "Invalid email or password") are still in English.
+- Every page is translated: customer, worker and admin. Dates and times use the selected language.
+- Common server messages (for example "Invalid email or password") are translated in the browser
+  (). Anything not in that list is shown as the server sent it.
+- Text that people type (worker names, service names, bios, reviews) stays as written.
 
 ## Project structure
 

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { formatTime, toDateKey } from '../utils/bookings';
+import { getLocale, useLanguage } from '../context/LanguageContext';
 
 const DAYS_SHOWN = 14;
 const FIRST_HOUR = 8;
@@ -24,6 +25,7 @@ const SLOTS = buildSlots();
  * value: { date: 'YYYY-MM-DD', time: 'HH:MM' }
  */
 export default function DateTimePicker({ value, onChange }) {
+  const { t } = useLanguage();
   const days = useMemo(() => {
     const today = new Date();
     return Array.from({ length: DAYS_SHOWN }, (_, i) => {
@@ -36,17 +38,17 @@ export default function DateTimePicker({ value, onChange }) {
   const now = new Date();
   const isToday = value.date === days[0].key;
   const minMinutes = now.getHours() * 60 + now.getMinutes() + 60;
-  const available = SLOTS.filter((t) => {
+  const available = SLOTS.filter((slot) => {
     if (!isToday) return true;
-    const [h, m] = t.split(':').map(Number);
+    const [h, m] = slot.split(':').map(Number);
     return h * 60 + m >= minMinutes;
   });
 
   return (
     <div className="space-y-4">
       <div>
-        <span className="text-sm font-medium text-slate-700">Date</span>
-        <div className="mt-2 flex gap-2 overflow-x-auto pb-1" role="listbox" aria-label="Choose a date">
+        <span className="text-sm font-medium text-slate-700">{t('booking.date')}</span>
+        <div className="mt-2 flex gap-2 overflow-x-auto pb-1" role="listbox" aria-label={t('booking.selectDate')}>
           {days.map((d) => {
             const selected = value.date === d.key;
             return (
@@ -61,11 +63,11 @@ export default function DateTimePicker({ value, onChange }) {
                 }`}
               >
                 <span className={`text-xs ${selected ? 'text-blue-100' : 'text-slate-400'}`}>
-                  {d.isToday ? 'Today' : d.date.toLocaleDateString('en-IN', { weekday: 'short' })}
+                  {d.isToday ? t('booking.today') : d.date.toLocaleDateString(getLocale(), { weekday: 'short' })}
                 </span>
                 <span className="text-lg font-semibold">{d.date.getDate()}</span>
                 <span className={`text-xs ${selected ? 'text-blue-100' : 'text-slate-400'}`}>
-                  {d.date.toLocaleDateString('en-IN', { month: 'short' })}
+                  {d.date.toLocaleDateString(getLocale(), { month: 'short' })}
                 </span>
               </button>
             );
@@ -75,25 +77,25 @@ export default function DateTimePicker({ value, onChange }) {
 
       {value.date && (
         <div>
-          <span className="text-sm font-medium text-slate-700">Time</span>
+          <span className="text-sm font-medium text-slate-700">{t('booking.time')}</span>
           {available.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-500">No slots left today. Please pick another day.</p>
+            <p className="mt-2 text-sm text-slate-500">{t('booking.noSlots')}</p>
           ) : (
-            <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5" role="listbox" aria-label="Choose a time">
-              {available.map((t) => {
-                const selected = value.time === t;
+            <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5" role="listbox" aria-label={t('booking.selectTime')}>
+              {available.map((slot) => {
+                const selected = value.time === slot;
                 return (
                   <button
-                    key={t}
+                    key={slot}
                     type="button"
                     role="option"
                     aria-selected={selected}
-                    onClick={() => onChange({ ...value, time: t })}
+                    onClick={() => onChange({ ...value, time: slot })}
                     className={`rounded-lg border px-2 py-2 text-sm font-medium transition ${
                       selected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-400'
                     }`}
                   >
-                    {formatTime(t)}
+                    {formatTime(slot)}
                   </button>
                 );
               })}

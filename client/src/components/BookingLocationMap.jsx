@@ -1,7 +1,9 @@
 import { CircleMarker, MapContainer, TileLayer } from 'react-leaflet';
+import { useLanguage } from '../context/LanguageContext';
 
 // Small static map of the job location. `location` is GeoJSON: { coordinates: [lng, lat] }.
 export default function BookingLocationMap({ location, className = 'h-40' }) {
+  const { t } = useLanguage();
   if (location?.coordinates?.length !== 2) return null;
   const [lng, lat] = location.coordinates;
 
@@ -27,7 +29,7 @@ export default function BookingLocationMap({ location, className = 'h-40' }) {
         rel="noreferrer"
         className="block bg-white px-3 py-1.5 text-xs font-medium text-blue-600 hover:underline"
       >
-        Open in map ↗
+        {t('booking.openInMap')}
       </a>
     </div>
   );

@@ -8,6 +8,7 @@ import { unitLabel } from '../components/ServicesEditor';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getWorker } from '../api/discovery';
+import { errorMessage } from '../api/client';
 import { formatPrice, formatPriceRange } from '../utils/format';
 
 export default function WorkerDetail() {
@@ -24,7 +25,7 @@ export default function WorkerDetail() {
     setError(null);
     getWorker(id)
       .then(setWorker)
-      .catch((err) => setError(err.response?.data?.message || t('worker.loadError')));
+      .catch((err) => setError(errorMessage(err, t('worker.loadError'))));
   }, [id]);
 
   if (error) {

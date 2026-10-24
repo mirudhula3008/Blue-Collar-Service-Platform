@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import BookingCard, { buttonStyles } from '../components/BookingCard';
 import usePolling from '../hooks/usePolling';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getWorkerBookings, updateBookingStatus } from '../api/bookings';
 import { errorMessage } from '../api/client';
 import { scheduleKey } from '../utils/bookings';
@@ -12,17 +13,18 @@ const POLL_MS = 15000;
 // Worker dashboard: incoming booking requests, refreshed every 15 seconds.
 export default function WorkerRequests() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [busy, setBusy] = useState(null); // `${id}:${action}`
   const { data, setData, error, loading } = usePolling(() => getWorkerBookings(), POLL_MS);
 
   const act = async (booking, action) => {
-    if (action === 'reject' && !window.confirm(`Decline the request from ${booking.customerId?.name || 'this customer'}?`)) return;
+    if (action === 'reject' && !window.confirm(t('requests.confirmDecline', { name: booking.customerId?.name || t('nav.roles.customer') }))) return;
     setBusy(`${booking._id}:${action}`);
     try {
       const updated = await updateBookingStatus(booking._id, action);
       setData((list) => list.map((b) => (b._id === updated._id ? updated : b)));
     } catch (err) {
-      window.alert(errorMessage(err, 'Could not update the booking.'));
+      window.alert(errorMessage(err, t('requests.updateFailed')));
     } finally {
       setBusy(null);
     }
@@ -35,30 +37,29 @@ export default function WorkerRequests() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl sm:text-4xl text-navy">Incoming requests</h1>
-          <p className="text-sm text-slate-500">Updates automatically every {POLL_MS / 1000} seconds.</p>
+          <h1 className="font-display text-3xl sm:text-4xl text-navy">{t('requests.title')}</h1>
+          <p className="text-sm text-slate-500">{t('requests.autoUpdate', { seconds: POLL_MS / 1000 })}</p>
         </div>
         <Link to="/worker/jobs" className={buttonStyles.ghost}>
-          My jobs{upcoming ? ` (${upcoming})` : ''} →
+          {t('requests.myJobs')}{upcoming ? ` (${upcoming})` : ''} →
         </Link>
       </div>
 
       {user.accountStatus && user.accountStatus !== 'active' && (
         <p className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-800">
-          Your account is <strong>{user.accountStatus.replace('_', ' ')}</strong>, so customers can’t find or book you. Contact
-          support if you think this is a mistake.
+          {t('requests.accountRestricted', { status: t(`admin.status.${user.accountStatus}`) })}
         </p>
       )}
       {!user.isVerified && (
         <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          ⏳ Your account is awaiting verification. Customers can’t find you until an admin verifies your ID proof.
+          ⏳ {t('requests.awaitingVerification')}
         </p>
       )}
       {user.availability === false && (
         <p className="mt-4 rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-700">
-          You’re marked as unavailable, so customers can’t send new requests.{' '}
+          {t('requests.unavailable')}{' '}
           <Link to="/profile" className="font-medium text-blue-600 hover:underline">
-            Change availability
+            {t('requests.changeAvailability')}
           </Link>
         </p>
       )}
@@ -69,17 +70,17 @@ export default function WorkerRequests() {
 
         {data && requests.length === 0 && (
           <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
-            No new requests right now. New bookings will appear here automatically.
+            {t('requests.none')}
           </div>
         )}
 
         {requests.map((b) => (
           <BookingCard key={b._id} booking={b} viewer="worker" showMap>
             <button type="button" className={buttonStyles.success} disabled={Boolean(busy)} onClick={() => act(b, 'accept')}>
-              {busy === `${b._id}:accept` ? 'Accepting…' : '✓ Accept'}
+              {busy === `${b._id}:accept` ? t('requests.accepting') : `✓ ${t('requests.accept')}`}
             </button>
             <button type="button" className={buttonStyles.danger} disabled={Boolean(busy)} onClick={() => act(b, 'reject')}>
-              {busy === `${b._id}:reject` ? 'Declining…' : 'Decline'}
+              {busy === `${b._id}:reject` ? t('requests.declining') : t('requests.decline')}
             </button>
           </BookingCard>
         ))}

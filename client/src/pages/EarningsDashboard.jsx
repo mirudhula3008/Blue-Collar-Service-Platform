@@ -3,19 +3,31 @@ import { CalendarDays, Clock, IndianRupee, Percent, Star, TrendingUp, Wallet } f
 import EarningsChart from '../components/EarningsChart';
 import { getEarningsHistory, getEarningsSummary, getEarningsTransactions } from '../api/earnings';
 import { errorMessage } from '../api/client';
-import { formatPrice } from '../utils/format';
+import { useLanguage, getLocale } from '../context/LanguageContext';
+import { formatDate, formatPrice } from '../utils/format';
 
 const PERIODS = [
-  { id: 'daily', label: 'Last 7 days' },
-  { id: 'weekly', label: 'Last 4 weeks' },
-  { id: 'monthly', label: 'Last 6 months' },
+  { id: 'daily', label: 'earnings.last7Days' },
+  { id: 'weekly', label: 'earnings.last4Weeks' },
+  { id: 'monthly', label: 'earnings.last6Months' },
 ];
 const PER_PAGE = 10;
 
-const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+// Chart labels are formatted here (from each bucket's start date) so they follow the selected language.
+function periodLabel(entry, period, isLast, t) {
+  const date = new Date(entry.start);
+  const opts = { timeZone: 'Asia/Kolkata' };
+  if (period === 'monthly') return date.toLocaleDateString(getLocale(), { ...opts, month: 'short' });
+  const day = date.toLocaleDateString(getLocale(), { ...opts, day: 'numeric', month: 'short' });
+  if (period === 'weekly') return isLast ? t('earnings.thisWeek') : t('earnings.weekOf', { date: day });
+  return day;
+}
+
+const methodText = (row, t) => (row.method === 'card' ? row.methodLabel : t(`booking.methods.${row.method}`));
 
 // /worker/earnings — income, platform commission and payouts for the logged-in worker.
 export default function EarningsDashboard() {
+  const { t } = useLanguage();
   const [summary, setSummary] = useState(null);
   const [period, setPeriod] = useState('daily');
   const [history, setHistory] = useState(null);
@@ -26,7 +38,7 @@ export default function EarningsDashboard() {
   useEffect(() => {
     getEarningsSummary()
       .then(setSummary)
-      .catch((err) => setError(errorMessage(err, 'Could not load earnings.')));
+      .catch((err) => setError(errorMessage(err, t('earnings.loadFailed'))));
   }, []);
 
   useEffect(() => {
@@ -48,29 +60,29 @@ export default function EarningsDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <p className="eyebrow">Your money</p>
-      <h1 className="mt-1 font-display text-3xl text-navy sm:text-4xl">Earnings</h1>
+      <p className="eyebrow">{t('earnings.eyebrow')}</p>
+      <h1 className="mt-1 font-display text-3xl text-navy sm:text-4xl">{t('nav.earnings')}</h1>
       <p className="mt-1 text-slate-500">
-        Take-home amounts are after the {rate}% platform commission. Jobs count once they’re marked completed.
+        {t('earnings.intro', { rate })}
       </p>
 
       {/* Period cards */}
       <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {summary
           ? [
-              ['Today', summary.today, Clock],
-              ['This week', summary.thisWeek, CalendarDays],
-              ['This month', summary.thisMonth, TrendingUp],
-              ['Lifetime', summary.totalLifetime, IndianRupee],
+              ['earnings.today', summary.today, Clock],
+              ['earnings.thisWeek', summary.thisWeek, CalendarDays],
+              ['earnings.thisMonth', summary.thisMonth, TrendingUp],
+              ['earnings.lifetime', summary.totalLifetime, IndianRupee],
             ].map(([label, p, Icon]) => (
               <div key={label} className="card p-5">
                 <div className="flex items-center justify-between">
-                  <p className="caption">{label}</p>
+                  <p className="caption">{t(label)}</p>
                   <Icon size={18} className="text-blue-600" aria-hidden="true" />
                 </div>
                 <p className="mt-3 text-2xl font-bold tabular-nums text-navy sm:text-3xl">{formatPrice(p.net)}</p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {formatPrice(p.earnings)} earned · {p.jobs} job{p.jobs === 1 ? '' : 's'}
+                  {t('earnings.earnedJobs', { amount: formatPrice(p.earnings), count: p.jobs })}
                 </p>
               </div>
             ))
@@ -83,30 +95,29 @@ export default function EarningsDashboard() {
           <MiniStat
             Icon={Wallet}
             tone="amber"
-            label="Pending payout"
+            label={t('earnings.pending')}
             value={formatPrice(summary.pendingPayouts)}
-            note="Settled to you 7 days after each job"
+            note={t('earnings.pendingNote')}
           />
           <MiniStat
             Icon={Percent}
-            label={`Platform commission (${rate}%)`}
+            label={t('earnings.platformCommission', { rate })}
             value={formatPrice(summary.platformCommission)}
-            note="Lifetime total"
+            note={t('earnings.lifetimeTotal')}
           />
-          <MiniStat Icon={IndianRupee} label="Average job value" value={formatPrice(summary.averageJobValue)} note="Before commission" />
+          <MiniStat Icon={IndianRupee} label={t('earnings.avgJobValue')} value={formatPrice(summary.averageJobValue)} note={t('earnings.beforeCommission')} />
           <MiniStat
             Icon={Star}
-            label="Average rating"
-            value={summary.averageRating ? `${summary.averageRating.toFixed(1)} ★` : 'New'}
-            note={`${summary.totalReviews} review${summary.totalReviews === 1 ? '' : 's'}`}
+            label={t('earnings.avgRating')}
+            value={summary.averageRating ? `${summary.averageRating.toFixed(1)} ★` : t('worker.new')}
+            note={t('review.count', { count: summary.totalReviews })}
           />
         </div>
       )}
 
       {summary?.awaitingCompletion?.jobs > 0 && (
         <p className="mt-4 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-800">
-          {formatPrice(summary.awaitingCompletion.amount)} already paid by customers for {summary.awaitingCompletion.jobs} upcoming job
-          {summary.awaitingCompletion.jobs === 1 ? '' : 's'}. It counts as earnings once you complete them.
+          {t('earnings.awaiting', { amount: formatPrice(summary.awaitingCompletion.amount), count: summary.awaitingCompletion.jobs })}
         </p>
       )}
 
@@ -114,10 +125,10 @@ export default function EarningsDashboard() {
       <section className="card mt-6 p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-2xl text-navy">Earnings over time</h2>
-            <p className="text-sm text-slate-500">Hover a bar for take-home pay and job count.</p>
+            <h2 className="font-display text-2xl text-navy">{t('earnings.overTime')}</h2>
+            <p className="text-sm text-slate-500">{t('earnings.chartHint')}</p>
           </div>
-          <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1" role="tablist" aria-label="Chart period">
+          <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1" role="tablist" aria-label={t('earnings.chartPeriod')}>
             {PERIODS.map((p) => (
               <button
                 key={p.id}
@@ -129,56 +140,58 @@ export default function EarningsDashboard() {
                   period === p.id ? 'bg-white text-navy shadow-card' : 'text-slate-500 hover:text-navy'
                 }`}
               >
-                {p.label}
+                {t(p.label)}
               </button>
             ))}
           </div>
         </div>
         <div className="mt-6">
-          {history ? <EarningsChart data={history} /> : <div className="h-56 animate-pulse rounded-xl bg-slate-100" />}
+          {history ? (
+            <EarningsChart data={history.map((entry, i) => ({ ...entry, label: periodLabel(entry, period, i === history.length - 1, t) }))} />
+          ) : <div className="h-56 animate-pulse rounded-xl bg-slate-100" />}
         </div>
       </section>
 
       {/* Transactions */}
       <section className="card mt-6 overflow-hidden">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-          <h2 className="font-display text-2xl text-navy">Transactions</h2>
-          {tx && <span className="text-sm text-slate-500">{tx.total} completed jobs</span>}
+          <h2 className="font-display text-2xl text-navy">{t('earnings.transactions')}</h2>
+          {tx && <span className="text-sm text-slate-500">{t('earnings.completedJobs', { count: tx.total })}</span>}
         </div>
 
         {!tx ? (
           <div className="m-5 h-40 animate-pulse rounded-xl bg-slate-100" />
         ) : tx.transactions.length === 0 ? (
-          <p className="p-8 text-center text-slate-500">No completed jobs yet. Finished jobs and their payouts will appear here.</p>
+          <p className="p-8 text-center text-slate-500">{t('earnings.noTransactions')}</p>
         ) : (
           <>
             <div className="hidden overflow-x-auto md:block">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="px-5 py-3">Date</th>
-                    <th className="px-5 py-3">Job</th>
-                    <th className="px-5 py-3">Method</th>
-                    <th className="px-5 py-3 text-right">Amount</th>
-                    <th className="px-5 py-3 text-right">Commission</th>
-                    <th className="px-5 py-3 text-right">You get</th>
-                    <th className="px-5 py-3">Payout</th>
+                    <th className="px-5 py-3">{t('earnings.col.date')}</th>
+                    <th className="px-5 py-3">{t('earnings.col.job')}</th>
+                    <th className="px-5 py-3">{t('payment.method')}</th>
+                    <th className="px-5 py-3 text-right">{t('payment.amount')}</th>
+                    <th className="px-5 py-3 text-right">{t('earnings.col.commission')}</th>
+                    <th className="px-5 py-3 text-right">{t('earnings.col.youGet')}</th>
+                    <th className="px-5 py-3">{t('earnings.col.payout')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {tx.transactions.map((t) => (
-                    <tr key={t._id}>
-                      <td className="whitespace-nowrap px-5 py-3 text-slate-500">{formatDate(t.earnedAt)}</td>
+                  {tx.transactions.map((row) => (
+                    <tr key={row._id}>
+                      <td className="whitespace-nowrap px-5 py-3 text-slate-500">{formatDate(row.earnedAt)}</td>
                       <td className="px-5 py-3">
-                        <p className="font-medium text-navy">{t.serviceName}</p>
-                        <p className="text-xs text-slate-500">{t.customerName}</p>
+                        <p className="font-medium text-navy">{row.serviceName}</p>
+                        <p className="text-xs text-slate-500">{row.customerName}</p>
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3 text-slate-600">{t.methodLabel}</td>
-                      <td className="px-5 py-3 text-right tabular-nums text-slate-700">{formatPrice(t.amount)}</td>
-                      <td className="px-5 py-3 text-right tabular-nums text-slate-400">−{formatPrice(t.commission)}</td>
-                      <td className="px-5 py-3 text-right font-semibold tabular-nums text-navy">{formatPrice(t.net)}</td>
+                      <td className="whitespace-nowrap px-5 py-3 text-slate-600">{methodText(row, t)}</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-slate-700">{formatPrice(row.amount)}</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-slate-400">−{formatPrice(row.commission)}</td>
+                      <td className="px-5 py-3 text-right font-semibold tabular-nums text-navy">{formatPrice(row.net)}</td>
                       <td className="px-5 py-3">
-                        <PayoutBadge settled={t.settled} />
+                        <PayoutBadge settled={row.settled} />
                       </td>
                     </tr>
                   ))}
@@ -187,20 +200,20 @@ export default function EarningsDashboard() {
             </div>
 
             <ul className="divide-y divide-slate-100 md:hidden">
-              {tx.transactions.map((t) => (
-                <li key={t._id} className="flex items-start justify-between gap-3 px-5 py-4">
+              {tx.transactions.map((row) => (
+                <li key={row._id} className="flex items-start justify-between gap-3 px-5 py-4">
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-navy">{t.serviceName}</p>
+                    <p className="truncate font-medium text-navy">{row.serviceName}</p>
                     <p className="text-xs text-slate-500">
-                      {t.customerName} · {formatDate(t.earnedAt)} · {t.methodLabel}
+                      {row.customerName} · {formatDate(row.earnedAt)} · {methodText(row, t)}
                     </p>
                     <div className="mt-1.5">
-                      <PayoutBadge settled={t.settled} />
+                      <PayoutBadge settled={row.settled} />
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold tabular-nums text-navy">{formatPrice(t.net)}</p>
-                    <p className="text-xs tabular-nums text-slate-400">of {formatPrice(t.amount)}</p>
+                    <p className="font-semibold tabular-nums text-navy">{formatPrice(row.net)}</p>
+                    <p className="text-xs tabular-nums text-slate-400">{t('earnings.ofAmount', { amount: formatPrice(row.amount) })}</p>
                   </div>
                 </li>
               ))}
@@ -208,14 +221,14 @@ export default function EarningsDashboard() {
 
             <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 text-sm text-slate-500">
               <span>
-                Page {tx.page} of {Math.max(tx.pages, 1)}
+                {t('common.pageOf', { page: tx.page, pages: Math.max(tx.pages, 1) })}
               </span>
               <div className="flex gap-2">
                 <button type="button" className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                  ← Prev
+                  {t('common.prev')}
                 </button>
                 <button type="button" className="btn btn-secondary btn-sm" disabled={page >= tx.pages} onClick={() => setPage((p) => p + 1)}>
-                  Next →
+                  {t('common.nextPage')}
                 </button>
               </div>
             </div>
@@ -247,5 +260,10 @@ function MiniStat({ Icon, label, value, note, tone }) {
 }
 
 function PayoutBadge({ settled }) {
-  return settled ? <span className="badge badge-verified">Paid out</span> : <span className="badge badge-negotiable">Pending</span>;
+  const { t } = useLanguage();
+  return settled ? (
+    <span className="badge badge-verified">{t('earnings.paidOut')}</span>
+  ) : (
+    <span className="badge badge-negotiable">{t('earnings.payoutPending')}</span>
+  );
 }

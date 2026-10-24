@@ -1,5 +1,6 @@
 // Seeds sample workers, customers and reviews around Chennai.
-// Only touches accounts with an @seed.local email, so real data is left alone.
+// Creates or updates accounts with an @seed.local email (by email, keeping their ids),
+// so re-running it never breaks existing bookings, payments or the admin account.
 // Usage: npm run seed   (all seeded accounts use the password "password123")
 
 require('dotenv').config();
@@ -8,10 +9,12 @@ const bcrypt = require('bcryptjs');
 const connectDB = require('../config/db');
 const User = require('../models/User');
 const Review = require('../models/Review');
+const Booking = require('../models/Booking');
+const { recalculateWorkerRating } = require('../utils/ratings');
 
 const SEED_DOMAIN = '@seed.local';
 
-// [name, category, area, lat, lng, negotiable, available, years, services]
+// [name, category, area, lat, lng, negotiable, available, years, services: [name, price, unit?]]
 const WORKERS = [
   ['Ravi Kumar', 'plumbing', 'T. Nagar', 13.0418, 80.2341, true, true, 8,
     [['Tap / faucet repair', 250], ['Pipe leak fixing', 400], ['Bathroom fitting installation', 900]]],
@@ -47,6 +50,43 @@ const WORKERS = [
     [['Sofa shampooing', 900], ['Bathroom cleaning', 450], ['Move-in / move-out cleaning', 4000]]],
   ['Selvi Rajan', 'cleaning', 'Royapettah', 13.054, 80.264, true, false, 7,
     [['Kitchen deep cleaning', 1000], ['Window & balcony cleaning', 600], ['Full home deep cleaning', 3000]]],
+
+  ['Arjun Krishnan', 'appliance_repair', 'Ashok Nagar', 13.0359, 80.2102, true, true, 9,
+    [['Washing machine repair', 450], ['Refrigerator repair', 550], ['AC service', 600], ['Microwave repair', 350]]],
+  ['Sathish Kumar', 'appliance_repair', 'Saidapet', 13.0213, 80.2231, false, true, 6,
+    [['AC gas refill', 1800], ['Refrigerator repair', 500], ['Water purifier service', 400]]],
+  ['Rahim Basha', 'appliance_repair', 'Kilpauk', 13.0825, 80.2428, true, false, 11,
+    [['TV repair', 650], ['Washing machine repair', 400], ['Geyser repair', 450]]],
+
+  ['Venkatesh Iyer', 'vehicle_rental', 'Alwarpet', 13.0335, 80.2547, true, true, 8,
+    [['Scooter rental', 400, 'per day'], ['Car rental (hatchback)', 1800, 'per day'], ['Car with driver (sedan)', 3200, 'per day']]],
+  ['Farooq Ahmed', 'vehicle_rental', 'Triplicane', 13.0588, 80.2756, false, true, 5,
+    [['Bike rental (150cc)', 550, 'per day'], ['Car rental (SUV)', 3000, 'per day']]],
+  ['Kavitha Raman', 'vehicle_rental', 'Thoraipakkam', 12.9416, 80.2362, true, true, 4,
+    [['Scooter rental', 350, 'per day'], ['Car rental (sedan)', 2200, 'per day']]],
+
+  ['Balaji Sundaram', 'car_wash', 'Vadapalani', 13.05, 80.2121, true, true, 6,
+    [['Exterior car wash', 300], ['Interior + exterior wash', 600], ['Full car detailing', 2500]]],
+  ['Naveen Raj', 'car_wash', 'Pallikaranai', 12.9349, 80.2137, false, true, 3,
+    [['Doorstep car wash', 350], ['Foam wash + wax', 800]]],
+  ['Imran Khan', 'car_wash', 'Mogappair', 13.0837, 80.175, true, true, 5,
+    [['Exterior car wash', 280], ['Interior vacuum + wash', 550]]],
+
+  ['Ramesh Babu', 'bike_wash', 'West Mambalam', 13.039, 80.221, true, true, 4,
+    [['Bike wash', 120], ['Bike foam wash + polish', 250]]],
+  ['Siva Prakash', 'bike_wash', 'Ambattur', 13.1143, 80.1548, false, true, 3,
+    [['Doorstep bike wash', 150], ['Chain cleaning + lube', 200]]],
+  ['Gopi Nathan', 'bike_wash', 'Medavakkam', 12.9171, 80.1923, true, false, 2,
+    [['Bike wash', 100], ['Bike wash + polish', 220]]],
+
+  ['Muthu Kumar', 'mechanic', 'Guindy', 13.0108, 80.2133, true, true, 14,
+    [['Bike general service', 600], ['Car general service', 2500], ['Breakdown assistance', 500], ['Puncture repair', 100]]],
+  ['Anand Raj', 'mechanic', 'Porur', 13.035, 80.158, false, true, 9,
+    [['Car battery replacement', 300], ['Brake pad replacement', 900], ['Bike engine repair', 1500]]],
+  ['Sebastian Paul', 'mechanic', 'Adyar', 13.0067, 80.257, true, true, 12,
+    [['Two-wheeler service at home', 700], ['Car AC repair', 1500], ['Clutch repair', 1800]]],
+  ['Karim Sheikh', 'mechanic', 'Perungudi', 12.9654, 80.2461, true, true, 7,
+    [['Breakdown towing', 1200], ['Puncture repair', 120], ['Car general service', 2200]]],
 ];
 
 const CUSTOMERS = [
@@ -66,49 +106,76 @@ const REVIEW_TEXT = [
 
 const slug = (name) => name.toLowerCase().replace(/[^a-z]+/g, '.');
 
+const CATEGORY_LABEL = {
+  plumbing: 'plumbing',
+  electrical: 'electrical',
+  carpentry: 'carpentry',
+  painting: 'painting',
+  cleaning: 'cleaning',
+  appliance_repair: 'appliance repair',
+  vehicle_rental: 'vehicle rental',
+  car_wash: 'car wash',
+  bike_wash: 'bike wash',
+  mechanic: 'vehicle repair',
+};
+
+// Creates or updates an account by email, keeping its _id so existing
+// bookings, payments and demo history stay linked.
+const upsertUser = (data) =>
+  User.findOneAndUpdate({ email: data.email }, { $set: data }, { upsert: true, new: true, setDefaultsOnInsert: true });
+
 async function seed() {
   await connectDB();
   await User.syncIndexes();
 
-  const oldSeedUsers = await User.find({ email: { $regex: `${SEED_DOMAIN.replace('.', '\\.')}$` } }).select('_id');
-  const oldIds = oldSeedUsers.map((u) => u._id);
-  await Review.deleteMany({ $or: [{ workerId: { $in: oldIds } }, { customerId: { $in: oldIds } }] });
-  await User.deleteMany({ _id: { $in: oldIds } });
-
   const password = await bcrypt.hash('password123', 10);
 
-  const customers = await User.insertMany(
-    CUSTOMERS.map(([name, lat, lng], i) => ({
-      name,
-      email: `${slug(name)}${SEED_DOMAIN}`,
-      phone: `98400000${String(i).padStart(2, '0')}`,
-      password,
-      role: 'customer',
-      location: { type: 'Point', coordinates: [lng, lat] },
-    }))
+  const customers = await Promise.all(
+    CUSTOMERS.map(([name, lat, lng], i) =>
+      upsertUser({
+        name,
+        email: `${slug(name)}${SEED_DOMAIN}`,
+        phone: `98400000${String(i).padStart(2, '0')}`,
+        password,
+        role: 'customer',
+        location: { type: 'Point', coordinates: [lng, lat] },
+      })
+    )
   );
 
-  const workers = await User.insertMany(
-    WORKERS.map(([name, category, area, lat, lng, negotiable, available, years, services], i) => ({
-      name,
-      email: `${slug(name)}${SEED_DOMAIN}`,
-      phone: `94440000${String(i).padStart(2, '0')}`,
-      password,
-      role: 'worker',
-      profilePhoto: `https://i.pravatar.cc/300?img=${i + 11}`,
-      location: { type: 'Point', coordinates: [lng, lat] },
-      address: `${area}, Chennai`,
-      serviceCategory: category,
-      services: services.map(([serviceName, price]) => ({ name: serviceName, price })),
-      bio: `${years} years of experience in ${category} work around ${area} and nearby areas.`,
-      experienceYears: years,
-      isNegotiable: negotiable,
-      isVerified: true,
-      availability: available,
-    }))
+  const workers = await Promise.all(
+    WORKERS.map(([name, category, area, lat, lng, negotiable, available, years, services], i) =>
+      upsertUser({
+        name,
+        email: `${slug(name)}${SEED_DOMAIN}`,
+        phone: `94440000${String(i).padStart(2, '0')}`,
+        password,
+        role: 'worker',
+        profilePhoto: `https://i.pravatar.cc/300?img=${(i % 60) + 11}`,
+        location: { type: 'Point', coordinates: [lng, lat] },
+        address: `${area}, Chennai`,
+        serviceCategory: category,
+        services: services.map(([serviceName, price, unit = 'per job']) => ({ name: serviceName, price, unit })),
+        bio: `${years} years of experience in ${CATEGORY_LABEL[category]} work around ${area} and nearby areas.`,
+        experienceYears: years,
+        isNegotiable: negotiable,
+        isVerified: true,
+        availability: available,
+      })
+    )
   );
 
-  // 2–4 reviews per worker, then store the real average on the worker.
+  // Replace only the sample reviews: seed reviews point at bookings that don't exist,
+  // so real reviews (with real bookings) are never touched.
+  const workerIds = workers.map((w) => w._id);
+  const customerIds = customers.map((c) => c._id);
+  const candidates = await Review.find({ workerId: { $in: workerIds }, customerId: { $in: customerIds } }).select('bookingId');
+  const realBookingIds = new Set(
+    (await Booking.find({ _id: { $in: candidates.map((r) => r.bookingId) } }).select('_id')).map((b) => String(b._id))
+  );
+  await Review.deleteMany({ _id: { $in: candidates.filter((r) => !realBookingIds.has(String(r.bookingId))).map((r) => r._id) } });
+
+  // 2–4 sample reviews per worker.
   const reviews = [];
   workers.forEach((worker, wi) => {
     const count = 2 + (wi % 3);
@@ -127,18 +194,10 @@ async function seed() {
   // timestamps: false keeps the back-dated createdAt values above.
   await Review.insertMany(reviews, { timestamps: false });
 
-  await Promise.all(
-    workers.map((worker) => {
-      const own = reviews.filter((r) => r.workerId.equals(worker._id));
-      const avg = own.reduce((sum, r) => sum + r.rating, 0) / own.length;
-      return User.updateOne(
-        { _id: worker._id },
-        { averageRating: Math.round(avg * 10) / 10, totalReviews: own.length }
-      );
-    })
-  );
+  // Ratings come from every review (sample + real).
+  await Promise.all(workers.map((w) => recalculateWorkerRating(w._id)));
 
-  console.log(`Seeded ${workers.length} workers, ${customers.length} customers, ${reviews.length} reviews.`);
+  console.log(`Seeded ${workers.length} workers, ${customers.length} customers, ${reviews.length} sample reviews.`);
   await mongoose.disconnect();
 }
 

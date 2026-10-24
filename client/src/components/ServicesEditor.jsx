@@ -3,7 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 const EMPTY = { name: '', price: '', unit: 'per job' };
 // Stored values stay in English; only the labels are translated.
-const UNITS = ['per job', 'per hour', 'per sq ft', 'per visit'];
+const UNITS = ['per job', 'per hour', 'per day', 'per sq ft', 'per visit'];
 
 // Editable list of { name, price, unit } rows.
 export default function ServicesEditor({ services, onChange }) {

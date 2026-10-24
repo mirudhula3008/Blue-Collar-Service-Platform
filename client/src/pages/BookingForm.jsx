@@ -4,6 +4,8 @@ import DateTimePicker from '../components/DateTimePicker';
 import LocationPicker from '../components/LocationPicker';
 import { buttonStyles } from '../components/BookingCard';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { unitLabel } from '../components/ServicesEditor';
 import { createBooking, getWorkerProfile } from '../api/bookings';
 import { errorMessage } from '../api/client';
 import { formatPrice } from '../utils/format';
@@ -18,6 +20,7 @@ export default function BookingForm() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const [worker, setWorker] = useState(state?.worker?._id === workerId ? state.worker : null);
   const [loadError, setLoadError] = useState(null);
@@ -33,7 +36,7 @@ export default function BookingForm() {
     if (worker) return;
     getWorkerProfile(workerId)
       .then(setWorker)
-      .catch((err) => setLoadError(errorMessage(err, 'Could not load this worker.')));
+      .catch((err) => setLoadError(errorMessage(err, t('worker.loadError'))));
   }, [workerId, worker]);
 
   const service = worker?.services?.find((s) => s.name === serviceName);
@@ -47,7 +50,7 @@ export default function BookingForm() {
       <div className="mx-auto max-w-xl px-4 py-16 text-center">
         <p className="text-red-700">{loadError}</p>
         <Link to="/dashboard" className="mt-4 inline-block text-blue-600 hover:underline">
-          ← Browse services
+          {t('booking.browseServices')}
         </Link>
       </div>
     );
@@ -56,9 +59,9 @@ export default function BookingForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!service) return setError('Please choose a service');
-    if (!schedule.date || !schedule.time) return setError('Please choose a date and time');
-    if (worker.isNegotiable && !(Number(offer) > 0)) return setError('Please enter the price you want to offer');
+    if (!service) return setError(t('booking.errors.chooseService'));
+    if (!schedule.date || !schedule.time) return setError(t('booking.errors.chooseSlot'));
+    if (worker.isNegotiable && !(Number(offer) > 0)) return setError(t('booking.errors.enterOffer'));
 
     setError(null);
     setSubmitting(true);
@@ -75,7 +78,7 @@ export default function BookingForm() {
       // Step 2: pay (or choose cash) for the new booking.
       navigate(`/payment/${created._id}`, { replace: true });
     } catch (err) {
-      setError(errorMessage(err, 'Could not create the booking.'));
+      setError(errorMessage(err, t('booking.errors.createFailed')));
       setSubmitting(false);
     }
   };
@@ -85,14 +88,14 @@ export default function BookingForm() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <button type="button" onClick={() => navigate(-1)} className="text-sm text-blue-600 hover:underline">
-        ← Back
+        ← {t('common.back')}
       </button>
-      <h1 className="mt-2 font-display text-3xl sm:text-4xl text-navy">Book {worker.name}</h1>
+      <h1 className="mt-2 font-display text-3xl sm:text-4xl text-navy">{t('booking.bookWorker', { name: worker.name })}</h1>
 
       <form onSubmit={handleSubmit} className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0 space-y-6">
           <section className="card p-5">
-            <h2 className="font-semibold text-slate-900">1. Choose a service</h2>
+            <h2 className="font-semibold text-slate-900">{t('booking.step1')}</h2>
             {worker.services?.length ? (
               <div className="mt-3 space-y-2">
                 {worker.services.map((s) => (
@@ -114,55 +117,55 @@ export default function BookingForm() {
                       <span className="text-slate-800">{s.name}</span>
                     </span>
                     <span className="font-semibold text-slate-900">
-                      {formatPrice(s.price)} <span className="text-xs font-normal text-slate-400">{s.unit}</span>
+                      {formatPrice(s.price)} <span className="text-xs font-normal text-slate-400">{unitLabel(s.unit, t)}</span>
                     </span>
                   </label>
                 ))}
               </div>
             ) : (
-              <p className="mt-3 text-slate-500">This worker hasn’t listed any services yet.</p>
+              <p className="mt-3 text-slate-500">{t('worker.noServices')}</p>
             )}
           </section>
 
           <section className="card p-5">
-            <h2 className="mb-3 font-semibold text-slate-900">2. Pick a date and time</h2>
+            <h2 className="mb-3 font-semibold text-slate-900">{t('booking.step2')}</h2>
             <DateTimePicker value={schedule} onChange={setSchedule} />
           </section>
 
           <section className="space-y-4 card p-5">
-            <h2 className="font-semibold text-slate-900">3. Describe the job</h2>
+            <h2 className="font-semibold text-slate-900">{t('booking.step3')}</h2>
             <label className="block">
-              <span className="text-sm font-medium text-slate-700">What needs doing?</span>
+              <span className="text-sm font-medium text-slate-700">{t('booking.whatNeedsDoing')}</span>
               <textarea
                 rows={4}
                 maxLength={1000}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="e.g. Kitchen tap is leaking from the base. Flat on 2nd floor, lift available."
+                placeholder={t('booking.describePlaceholder')}
                 className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
               />
             </label>
             <LocationPicker value={location} onChange={setLocation} />
-            <p className="text-xs text-slate-400">The worker sees this location on a map so they can find you.</p>
+            <p className="text-xs text-slate-400">{t('booking.locationNote')}</p>
           </section>
         </div>
 
         {/* Summary */}
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
           <div className="card p-5">
-            <h2 className="font-semibold text-slate-900">Summary</h2>
+            <h2 className="font-semibold text-slate-900">{t('booking.summary')}</h2>
             <dl className="mt-3 space-y-2 text-sm">
-              <Row label="Worker" value={worker.name} />
-              <Row label="Service" value={service?.name || '—'} />
+              <Row label={t('payment.worker')} value={worker.name} />
+              <Row label={t('payment.service')} value={service?.name || '—'} />
               <Row
-                label="When"
+                label={t('payment.when')}
                 value={schedule.date && schedule.time ? `${formatScheduleDate(schedule.date)}, ${formatTime(schedule.time)}` : '—'}
               />
             </dl>
 
             {worker.isNegotiable && service ? (
               <label className="mt-4 block">
-                <span className="text-sm font-medium text-slate-700">Your price offer (₹)</span>
+                <span className="text-sm font-medium text-slate-700">{t('booking.yourOffer')}</span>
                 <input
                   type="number"
                   min="1"
@@ -171,12 +174,12 @@ export default function BookingForm() {
                   className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-lg font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
                 <span className="mt-1 block text-xs text-emerald-700">
-                  💬 Negotiable. Listed at {formatPrice(service.price)}; the worker can accept or decline your offer.
+                  {t('booking.offerNote', { price: formatPrice(service.price) })}
                 </span>
               </label>
             ) : (
               <div className="mt-4 flex items-baseline justify-between border-t border-slate-100 pt-3">
-                <span className="text-sm text-slate-500">Price</span>
+                <span className="text-sm text-slate-500">{t('booking.price')}</span>
                 <span className="text-2xl font-bold text-slate-900">{service ? formatPrice(price) : '—'}</span>
               </div>
             )}
@@ -184,9 +187,9 @@ export default function BookingForm() {
             {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
             <button type="submit" disabled={submitting} className="btn btn-amber mt-4 w-full py-3">
-              {submitting ? 'Sending request…' : 'Continue to payment'}
+              {submitting ? t('booking.sending') : t('booking.continueToPayment')}
             </button>
-            <p className="mt-2 text-center text-xs text-slate-400">You pay the worker directly once the job is done.</p>
+            <p className="mt-2 text-center text-xs text-slate-400">{t('booking.payDirectNote')}</p>
           </div>
         </aside>
       </form>

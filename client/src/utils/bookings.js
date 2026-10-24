@@ -1,3 +1,5 @@
+import { getLocale } from '../context/LanguageContext';
+
 export const STATUS = {
   requested: { label: 'Requested', badge: 'bg-sky-50 text-sky-700 ring-sky-200' },
   accepted: { label: 'Accepted', badge: 'bg-indigo-50 text-indigo-700 ring-indigo-200' },
@@ -12,12 +14,12 @@ export const ACTIVE = ['requested', 'accepted', 'in_progress'];
 
 // scheduledDate is stored as UTC midnight of the chosen day, so format it in UTC.
 export const formatScheduleDate = (date) =>
-  new Date(date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+  new Date(date).toLocaleDateString(getLocale(), { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
 
+// 'HH:MM' → '10:30 AM' (or the selected language's equivalent).
 export const formatTime = (hhmm) => {
   const [h, m] = hhmm.split(':').map(Number);
-  const suffix = h >= 12 ? 'PM' : 'AM';
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${suffix}`;
+  return new Date(Date.UTC(2000, 0, 1, h, m)).toLocaleTimeString(getLocale(), { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' });
 };
 
 // YYYY-MM-DD for a local Date.
@@ -29,4 +31,3 @@ export const scheduleKey = (b) => `${String(b.scheduledDate).slice(0, 10)} ${b.s
 
 export const CLOSED = ['rejected', 'cancelled', 'cancelled_by_admin'];
 
-export const PAYMENT_METHOD_LABEL = { upi: 'UPI', card: 'Card', wallet: 'Wallet', cash: 'Cash' };

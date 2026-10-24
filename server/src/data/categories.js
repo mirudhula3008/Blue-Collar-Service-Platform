@@ -6,6 +6,11 @@ const categories = [
   { id: 'carpentry', name: 'Carpentry', icon: '🪚', description: 'Furniture repair, doors, shelves and fittings' },
   { id: 'painting', name: 'Painting', icon: '🎨', description: 'Interior, exterior and touch-up painting' },
   { id: 'cleaning', name: 'Cleaning', icon: '🧹', description: 'Home, kitchen, bathroom and deep cleaning' },
+  { id: 'appliance_repair', name: 'Appliance Repair', icon: '🔌', description: 'AC, fridge, washing machine, TV and more' },
+  { id: 'vehicle_rental', name: 'Vehicle Rental', icon: '🚗', description: 'Rent cars, bikes and scooters by the day' },
+  { id: 'car_wash', name: 'Car Wash', icon: '🚿', description: 'Doorstep car wash, interior cleaning, detailing' },
+  { id: 'bike_wash', name: 'Bike Wash', icon: '🏍️', description: 'Bike wash, polish and chain cleaning' },
+  { id: 'mechanic', name: 'Mechanic', icon: '🛠️', description: 'Car and bike repair, servicing, breakdown help' },
 ];
 
 const categoryIds = categories.map((c) => c.id);

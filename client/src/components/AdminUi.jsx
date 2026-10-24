@@ -1,41 +1,43 @@
 import { useEffect, useState } from 'react';
 import { Ban, CircleCheck, PauseCircle, Search, ShieldAlert } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
-// Account statuses an admin can set, with copy used across the admin pages.
+// Account statuses an admin can set. `label` and `help` are translation keys.
 export const ACCOUNT_STATUS = {
   active: {
-    label: 'Active',
+    label: 'admin.status.active',
     Icon: CircleCheck,
     badge: 'bg-emerald-50 text-emerald-700',
-    help: 'Visible in search and can receive bookings.',
+    help: 'admin.statusHelp.active',
   },
   under_review: {
-    label: 'Under review',
+    label: 'admin.status.under_review',
     Icon: ShieldAlert,
     badge: 'bg-amber-100 text-amber-800',
-    help: 'Hidden from search while you investigate. Existing bookings continue.',
+    help: 'admin.statusHelp.under_review',
   },
   suspended: {
-    label: 'Suspended',
+    label: 'admin.status.suspended',
     Icon: PauseCircle,
     badge: 'bg-orange-100 text-orange-800',
-    help: 'Temporarily removed. Pending and accepted bookings are cancelled and refunded.',
+    help: 'admin.statusHelp.suspended',
   },
   blocked: {
-    label: 'Blocked',
+    label: 'admin.status.blocked',
     Icon: Ban,
     badge: 'bg-rose-100 text-rose-700',
-    help: 'Permanently removed. Pending and accepted bookings are cancelled and refunded.',
+    help: 'admin.statusHelp.blocked',
   },
 };
 
 // Status always shows icon + label, never colour alone.
 export function AccountStatusBadge({ status = 'active' }) {
+  const { t } = useLanguage();
   const s = ACCOUNT_STATUS[status] || ACCOUNT_STATUS.active;
   const { Icon } = s;
   return (
     <span className={`badge ${s.badge}`}>
-      <Icon size={12} strokeWidth={2.5} aria-hidden="true" /> {s.label}
+      <Icon size={12} strokeWidth={2.5} aria-hidden="true" /> {t(s.label)}
     </span>
   );
 }
@@ -81,25 +83,24 @@ export function FilterChips({ options, value, onChange, label }) {
   );
 }
 
-export function Pager({ page, pages, total, noun = 'result', onPage }) {
+// `noun` is a key under admin.nouns (worker | customer | booking | user).
+export function Pager({ page, pages, total, noun = 'user', onPage }) {
+  const { t } = useLanguage();
   return (
     <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 text-sm text-slate-500">
       <span>
-        {total} {noun}
-        {total === 1 ? '' : 's'} · page {page} of {Math.max(pages, 1)}
+        {total} {t(`admin.nouns.${noun}`)} · {t('common.pageOf', { page, pages: Math.max(pages, 1) })}
       </span>
       <div className="flex gap-2">
         <button type="button" className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>
-          ← Prev
+          {t('common.prev')}
         </button>
         <button type="button" className="btn btn-secondary btn-sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>
-          Next →
+          {t('common.nextPage')}
         </button>
       </div>
     </div>
   );
 }
 
-export const shortDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-export const dateTime = (d) =>
-  new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+export { formatDate as shortDate, formatDateTime as dateTime } from '../utils/format';

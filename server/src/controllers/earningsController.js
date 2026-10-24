@@ -166,7 +166,8 @@ const getHistory = asyncHandler(async (req, res) => {
   res.json(
     buckets.map((b) => {
       const row = byKey.get(b.key) || { earnings: 0, jobs: 0 };
-      return { [labelField]: b.label, label: b.label, earnings: round(row.earnings), net: netOf(row.earnings), jobs: row.jobs };
+      // `start` (ISO) lets clients format the label in their own language.
+      return { [labelField]: b.label, label: b.label, start: b.start.toISOString(), earnings: round(row.earnings), net: netOf(row.earnings), jobs: row.jobs };
     })
   );
 });

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { errorMessage } from '../api/client';
+import { translate } from '../context/LanguageContext';
 
 /**
  * Calls `fetcher` now, every `intervalMs` while the tab is visible, and when the
@@ -16,7 +18,7 @@ export default function usePolling(fetcher, intervalMs = 15000) {
       setData(await fetcherRef.current());
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not load data.');
+      setError(errorMessage(err, translate('common.loadError')));
     } finally {
       setLoading(false);
     }
