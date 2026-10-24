@@ -7,6 +7,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import ComingSoon from './pages/ComingSoon';
+import ReviewPage from './pages/ReviewPage';
+import WorkerReviews from './pages/WorkerReviews';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
 
 export default function App() {
   return (
@@ -45,11 +49,37 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Module 4 — Reviews, Ratings and Admin */}
+            <Route
+              path="/review/:bookingId"
+              element={
+                <ProtectedRoute roles={['customer']}>
+                  <ReviewPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/worker/reviews"
+              element={
+                <ProtectedRoute roles={['worker']}>
+                  <WorkerReviews />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/admin"
               element={
                 <ProtectedRoute roles={['admin']}>
-                  <ComingSoon title="Admin dashboard" module="Module 4" />
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminUsers />
                 </ProtectedRoute>
               }
             />
