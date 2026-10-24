@@ -9,7 +9,7 @@ import { ACTIVE, scheduleKey } from '../utils/bookings';
 const TABS = [
   { id: 'active', label: 'Active', match: (b) => ACTIVE.includes(b.status) },
   { id: 'completed', label: 'Completed', match: (b) => b.status === 'completed' },
-  { id: 'cancelled', label: 'Cancelled', match: (b) => ['cancelled', 'rejected'].includes(b.status) },
+  { id: 'cancelled', label: 'Cancelled', match: (b) => ['cancelled', 'rejected', 'cancelled_by_admin'].includes(b.status) },
 ];
 
 const EMPTY = {
@@ -25,7 +25,8 @@ export default function MyBookings() {
   const { data: bookings, setData, error, loading } = usePolling(() => getCustomerBookings(), 30000);
 
   const cancel = async (booking) => {
-    if (!window.confirm(`Cancel your booking with ${booking.workerId?.name || 'this worker'}?`)) return;
+    const refundNote = booking.paymentStatus === 'paid' && booking.paymentMethod !== 'cash' ? ' Your payment will be refunded.' : '';
+    if (!window.confirm(`Cancel your booking with ${booking.workerId?.name || 'this worker'}?${refundNote}`)) return;
     setBusyId(booking._id);
     try {
       const updated = await updateBookingStatus(booking._id, 'cancel');
@@ -92,6 +93,11 @@ export default function MyBookings() {
 
         {list.map((b) => (
           <BookingCard key={b._id} booking={b} viewer="customer">
+            {['requested', 'accepted'].includes(b.status) && b.paymentStatus !== 'paid' && (
+              <Link to={`/payment/${b._id}`} className="btn btn-amber btn-sm">
+                Pay now
+              </Link>
+            )}
             {['requested', 'accepted'].includes(b.status) && (
               <button type="button" className={buttonStyles.danger} disabled={busyId === b._id} onClick={() => cancel(b)}>
                 {busyId === b._id ? 'Cancelling…' : 'Cancel booking'}

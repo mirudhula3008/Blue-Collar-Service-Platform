@@ -13,12 +13,14 @@ const LINKS = {
   worker: [
     { to: '/worker/dashboard', label: 'Requests' },
     { to: '/worker/jobs', label: 'Jobs' },
+    { to: '/worker/earnings', label: 'Earnings' },
     { to: '/worker/reviews', label: 'Reviews' },
     { to: '/profile', label: 'Profile' },
   ],
   admin: [
     { to: '/admin', label: 'Overview', end: true },
-    { to: '/admin/users', label: 'Users' },
+    { to: '/admin/workers', label: 'Workers' },
+    { to: '/admin/bookings', label: 'Bookings' },
   ],
 };
 

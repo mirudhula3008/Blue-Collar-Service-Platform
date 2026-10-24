@@ -3,6 +3,7 @@ const Booking = require('../models/Booking');
 const Review = require('../models/Review');
 const User = require('../models/User');
 const { ACTIONS, ACTIVE_STATUSES } = require('../utils/bookingStatus');
+const { refundBookings } = require('../utils/refunds');
 const { asyncHandler, httpError } = require('../utils/http');
 const { parseLocation } = require('../utils/validation');
 
@@ -37,7 +38,7 @@ async function reviewedSet(bookings) {
 function statusFilter(status) {
   if (!status) return {};
   if (status === 'active') return { status: { $in: ACTIVE_STATUSES } };
-  if (status === 'cancelled') return { status: { $in: ['cancelled', 'rejected'] } };
+  if (status === 'cancelled') return { status: { $in: ['cancelled', 'rejected', 'cancelled_by_admin'] } };
   if (Object.values(ACTIONS).some((a) => a.to === status) || status === 'requested') return { status };
   throw httpError(400, `Unknown status filter "${status}"`);
 }
@@ -64,6 +65,9 @@ const createBooking = asyncHandler(async (req, res) => {
   const worker = await User.findOne({ _id: workerId, role: 'worker' });
   if (!worker) throw httpError(404, 'Worker not found');
   if (!worker.isVerified) throw httpError(400, 'This worker is not verified yet');
+  if (worker.accountStatus && worker.accountStatus !== 'active') {
+    throw httpError(400, 'This worker is not accepting bookings right now');
+  }
   if (!worker.availability) throw httpError(400, 'This worker is not taking new jobs right now');
 
   const service = (worker.services || []).find((s) => s.name === serviceName);
@@ -164,6 +168,12 @@ const changeStatus = (actionName) =>
       .populate('workerId', PARTY_FIELDS)
       .populate('customerId', PARTY_FIELDS);
     if (!updated) throw httpError(409, 'This booking was just updated. Please refresh.');
+
+    // A paid booking that will never happen is refunded (simulated).
+    if (['rejected', 'cancelled'].includes(action.to) && updated.paymentStatus === 'paid') {
+      await refundBookings([updated._id]);
+      updated.paymentStatus = 'refunded';
+    }
 
     res.json(serialize(updated, await reviewedSet([updated])));
   });

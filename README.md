@@ -20,6 +20,7 @@ cp .env.example .env        # set MONGO_URI and JWT_SECRET
 npm install
 npm run seed                # 15 sample workers around Chennai, 3 customers, reviews
 npm run seed:admin          # admin account from ADMIN_EMAIL / ADMIN_PASSWORD
+npm run seed:demo           # ~6 months of paid, completed jobs for the earnings and admin dashboards
 npm run dev                 # http://localhost:5000
 
 # 2. Frontend (second terminal)
@@ -51,6 +52,31 @@ All seeded workers use `<first>.<last>@seed.local` with `password123`.
 
 Booking lifecycle: `requested → accepted → in_progress → completed`, with `rejected` (worker) and
 `cancelled` (customer, before work starts).
+
+## Payments, earnings and account control
+
+**Payments (simulated, no real gateway).** After booking, customers go to `/payment/:bookingId` and pay
+by UPI, card, wallet or cash. Processing takes 2 seconds, then the booking shows *Paid*. Card numbers are
+never stored: only the brand and the last 4 digits. Test card `4000 0000 0000 0002` is always declined.
+Declined, cancelled and admin-cancelled bookings refund their payment automatically.
+
+**Worker earnings** (`/worker/earnings`). Today, this week, this month and lifetime totals, with the 10%
+platform commission taken off. Also shows pending payouts, a 7-day, 4-week or 6-month chart, and a
+transaction list. Earnings only count once a job is completed.
+
+**Admin worker management** (`/admin/workers`). Workers can be set to active, under review, suspended or
+blocked. Every change needs a reason of at least 10 characters and can include evidence (links or
+uploaded photos). Changes are kept in an append-only history showing which admin made them.
+Suspending or blocking a worker cancels their pending and accepted bookings and refunds them.
+Workers who aren't active are hidden from search and can't be booked.
+
+| API | Notes |
+|---|---|
+| `POST /api/payments` · `PATCH /api/payments/:id/process` | Create, then process (customer) |
+| `GET /api/payments/booking/:bookingId` · `GET /api/payments/my` | Payment for a booking; my payments |
+| `GET /api/earnings/summary` · `/history?period=daily\|weekly\|monthly` · `/transactions` | Worker only |
+| `GET /api/admin/dashboard` · `/workers` · `/workers/:id` · `/customers` · `/bookings` | Admin only |
+| `PATCH /api/admin/workers/:id/status` · `GET /api/admin/workers/:id/status-history` | `{ status, reason, evidence? }` |
 
 ## Project structure
 

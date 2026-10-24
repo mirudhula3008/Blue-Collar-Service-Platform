@@ -63,7 +63,7 @@ export default function BookingForm() {
     setError(null);
     setSubmitting(true);
     try {
-      await createBooking({
+      const created = await createBooking({
         workerId,
         serviceName,
         description,
@@ -72,7 +72,8 @@ export default function BookingForm() {
         agreedPrice: worker.isNegotiable ? Number(offer) : undefined,
         ...(location || {}),
       });
-      navigate('/bookings', { replace: true, state: { justBooked: worker.name } });
+      // Step 2: pay (or choose cash) for the new booking.
+      navigate(`/payment/${created._id}`, { replace: true });
     } catch (err) {
       setError(errorMessage(err, 'Could not create the booking.'));
       setSubmitting(false);
@@ -183,7 +184,7 @@ export default function BookingForm() {
             {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
             <button type="submit" disabled={submitting} className="btn btn-amber mt-4 w-full py-3">
-              {submitting ? 'Sending request…' : 'Confirm booking request'}
+              {submitting ? 'Sending request…' : 'Continue to payment'}
             </button>
             <p className="mt-2 text-center text-xs text-slate-400">You pay the worker directly once the job is done.</p>
           </div>

@@ -31,6 +31,8 @@ app.use('/api/workers', require('./routes/workers'));
 
 // Module 3 — Booking System
 app.use('/api/bookings', require('./routes/bookings'));
+app.use('/api/payments', require('./routes/payments'));
+app.use('/api/earnings', require('./routes/earnings'));
 
 // Module 4 — Reviews, Ratings and Admin
 app.use('/api/reviews', require('./routes/reviews'));

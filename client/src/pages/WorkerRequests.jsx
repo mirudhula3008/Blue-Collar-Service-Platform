@@ -43,6 +43,12 @@ export default function WorkerRequests() {
         </Link>
       </div>
 
+      {user.accountStatus && user.accountStatus !== 'active' && (
+        <p className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          Your account is <strong>{user.accountStatus.replace('_', ' ')}</strong>, so customers can’t find or book you. Contact
+          support if you think this is a mistake.
+        </p>
+      )}
       {!user.isVerified && (
         <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
           ⏳ Your account is awaiting verification. Customers can’t find you until an admin verifies your ID proof.

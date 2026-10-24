@@ -13,6 +13,19 @@ const serviceSchema = new mongoose.Schema(
   { _id: true }
 );
 
+const ACCOUNT_STATUSES = ['active', 'suspended', 'blocked', 'under_review'];
+
+const statusChangeSchema = new mongoose.Schema(
+  {
+    status: { type: String, enum: ACCOUNT_STATUSES, required: true },
+    reason: { type: String, required: true, minlength: 10, trim: true },
+    changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    changedAt: { type: Date, default: Date.now },
+    evidence: [{ type: String }],
+  },
+  { _id: true }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -41,6 +54,11 @@ const userSchema = new mongoose.Schema(
     availability: { type: Boolean, default: true },
     averageRating: { type: Number, default: 0, min: 0, max: 5 },
     totalReviews: { type: Number, default: 0 },
+
+    // Admin account control. Only `active` workers can be found and booked.
+    accountStatus: { type: String, enum: ACCOUNT_STATUSES, default: 'active' },
+    // Append-only audit log: every status change with who made it and why.
+    statusHistory: { type: [statusChangeSchema], default: undefined },
   },
   { timestamps: true }
 );
@@ -68,3 +86,4 @@ userSchema.set('toJSON', {
 });
 
 module.exports = mongoose.model('User', userSchema);
+module.exports.ACCOUNT_STATUSES = ACCOUNT_STATUSES;

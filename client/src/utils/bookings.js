@@ -5,6 +5,7 @@ export const STATUS = {
   completed: { label: 'Completed', badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
   rejected: { label: 'Declined', badge: 'bg-rose-50 text-rose-700 ring-rose-200' },
   cancelled: { label: 'Cancelled', badge: 'bg-slate-100 text-slate-600 ring-slate-200' },
+  cancelled_by_admin: { label: 'Cancelled by admin', badge: 'bg-rose-50 text-rose-700 ring-rose-200' },
 };
 
 export const ACTIVE = ['requested', 'accepted', 'in_progress'];
@@ -25,3 +26,7 @@ export const toDateKey = (d) =>
 
 // Sort key so upcoming jobs appear soonest-first.
 export const scheduleKey = (b) => `${String(b.scheduledDate).slice(0, 10)} ${b.scheduledTime}`;
+
+export const CLOSED = ['rejected', 'cancelled', 'cancelled_by_admin'];
+
+export const PAYMENT_METHOD_LABEL = { upi: 'UPI', card: 'Card', wallet: 'Wallet', cash: 'Cash' };

@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 // Booking model, owned by Module 3. Module 4 only reads it (review eligibility
 // and admin stats). Field names follow the team plan; keep them in sync.
 
-const BOOKING_STATUSES = ['requested', 'accepted', 'rejected', 'in_progress', 'completed', 'cancelled'];
+const BOOKING_STATUSES = ['requested', 'accepted', 'rejected', 'in_progress', 'completed', 'cancelled', 'cancelled_by_admin'];
+const PAYMENT_STATUSES = ['unpaid', 'paid', 'refunded'];
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -21,9 +22,13 @@ const bookingSchema = new mongoose.Schema(
       coordinates: { type: [Number], default: undefined },
     },
     completedAt: { type: Date },
+    // Payment state (see Payment model). Separate from `status` so the job lifecycle stays unchanged.
+    paymentStatus: { type: String, enum: PAYMENT_STATUSES, default: 'unpaid' },
+    paymentMethod: { type: String },
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model('Booking', bookingSchema);
 module.exports.BOOKING_STATUSES = BOOKING_STATUSES;
+module.exports.PAYMENT_STATUSES = PAYMENT_STATUSES;

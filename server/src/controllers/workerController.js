@@ -8,6 +8,7 @@ const PUBLIC_WORKER_FIELDS = {
   email: 0,
   phone: 0,
   idProofUrl: 0,
+  statusHistory: 0,
 };
 
 const MAX_RADIUS_KM = 50;
@@ -37,7 +38,8 @@ async function searchWorkers(req, res, next) {
     const minRating = toNumber(req.query.minRating);
     const { category } = req.query;
 
-    const match = { role: 'worker', isVerified: true };
+    // Seeded and older accounts may have no accountStatus; treat that as active.
+    const match = { role: 'worker', isVerified: true, accountStatus: { $nin: ['suspended', 'blocked', 'under_review'] } };
 
     if (category) {
       if (!categoryIds.includes(category)) {

@@ -1,7 +1,7 @@
 import StatusBadge from './StatusBadge';
 import BookingLocationMap from './BookingLocationMap';
 import { formatPrice } from '../utils/format';
-import { formatScheduleDate, formatTime } from '../utils/bookings';
+import { PAYMENT_METHOD_LABEL, formatScheduleDate, formatTime } from '../utils/bookings';
 
 /**
  * One booking. `viewer` is 'customer' (shows the worker) or 'worker' (shows the customer).
@@ -22,7 +22,10 @@ export default function BookingCard({ booking, viewer, showMap = false, children
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="truncate font-semibold text-slate-900">{name}</h3>
-            <StatusBadge status={booking.status} />
+            <span className="flex flex-wrap items-center gap-1.5">
+              <PaymentBadge booking={booking} />
+              <StatusBadge status={booking.status} />
+            </span>
           </div>
           <p className="text-sm text-slate-600">
             {booking.serviceName} <span className="capitalize text-slate-400">· {booking.serviceCategory}</span>
@@ -76,3 +79,17 @@ export const buttonStyles = {
   danger: 'btn btn-danger btn-sm',
   ghost: 'btn btn-secondary btn-sm',
 };
+
+function PaymentBadge({ booking }) {
+  if (booking.paymentStatus === 'paid') {
+    const cash = booking.paymentMethod === 'cash';
+    return (
+      <span className={`badge ${cash ? 'badge-negotiable' : 'badge-verified'}`}>
+        {cash ? 'Cash on delivery' : `Paid · ${PAYMENT_METHOD_LABEL[booking.paymentMethod] || 'Online'}`}
+      </span>
+    );
+  }
+  if (booking.paymentStatus === 'refunded') return <span className="badge badge-busy">Refunded</span>;
+  if (['requested', 'accepted', 'in_progress'].includes(booking.status)) return <span className="badge badge-outline">Unpaid</span>;
+  return null;
+}

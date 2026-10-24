@@ -30,7 +30,7 @@ export default function WorkerJobs() {
   const inProgress = all.filter((b) => b.status === 'in_progress');
   const accepted = all.filter((b) => b.status === 'accepted').sort((a, b) => scheduleKey(a).localeCompare(scheduleKey(b)));
   const history = all
-    .filter((b) => ['completed', 'rejected', 'cancelled'].includes(b.status))
+    .filter((b) => ['completed', 'rejected', 'cancelled', 'cancelled_by_admin'].includes(b.status))
     .sort((a, b) => scheduleKey(b).localeCompare(scheduleKey(a)));
   const earned = all.filter((b) => b.status === 'completed').reduce((sum, b) => sum + b.agreedPrice, 0);
 

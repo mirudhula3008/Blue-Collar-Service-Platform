@@ -17,6 +17,12 @@ import ReviewPage from './pages/ReviewPage';
 import WorkerReviews from './pages/WorkerReviews';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
+import AdminWorkers from './pages/AdminWorkers';
+import AdminWorkerDetail from './pages/AdminWorkerDetail';
+import AdminCustomers from './pages/AdminCustomers';
+import AdminBookings from './pages/AdminBookings';
+import PaymentPage from './pages/PaymentPage';
+import EarningsDashboard from './pages/EarningsDashboard';
 
 const guard = (roles, element) => <ProtectedRoute roles={roles}>{element}</ProtectedRoute>;
 
@@ -49,6 +55,14 @@ export default function App() {
             <Route path="/worker/reviews" element={guard(['worker'], <WorkerReviews />)} />
             <Route path="/admin" element={guard(['admin'], <AdminDashboard />)} />
             <Route path="/admin/users" element={guard(['admin'], <AdminUsers />)} />
+            <Route path="/admin/workers" element={guard(['admin'], <AdminWorkers />)} />
+            <Route path="/admin/workers/:id" element={guard(['admin'], <AdminWorkerDetail />)} />
+            <Route path="/admin/customers" element={guard(['admin'], <AdminCustomers />)} />
+            <Route path="/admin/bookings" element={guard(['admin'], <AdminBookings />)} />
+
+            {/* Payments and earnings */}
+            <Route path="/payment/:bookingId" element={guard(['customer'], <PaymentPage />)} />
+            <Route path="/worker/earnings" element={guard(['worker'], <EarningsDashboard />)} />
 
             <Route path="*" element={<p className="p-8 text-center">Page not found</p>} />
           </Routes>
