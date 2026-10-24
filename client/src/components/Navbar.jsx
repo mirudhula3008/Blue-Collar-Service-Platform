@@ -12,9 +12,13 @@ const LINKS = {
   worker: [
     { to: '/worker/dashboard', label: 'Requests' },
     { to: '/worker/jobs', label: 'Jobs' },
+    { to: '/worker/reviews', label: 'Reviews' },
     { to: '/profile', label: 'Profile' },
   ],
-  admin: [{ to: '/admin', label: 'Admin' }],
+  admin: [
+    { to: '/admin', label: 'Overview', end: true },
+    { to: '/admin/users', label: 'Users' },
+  ],
 };
 
 const linkClass = ({ isActive }) =>
@@ -54,7 +58,7 @@ export default function Navbar() {
           className={`${open ? 'flex' : 'hidden'} absolute left-0 right-0 top-14 flex-col gap-1 border-b border-slate-200 bg-white p-3 sm:static sm:flex sm:flex-row sm:items-center sm:border-0 sm:p-0`}
         >
           {links.map((l) => (
-            <NavLink key={l.to} to={l.to} className={linkClass} onClick={() => setOpen(false)}>
+            <NavLink key={l.to} to={l.to} end={l.end} className={linkClass} onClick={() => setOpen(false)}>
               {l.label}
             </NavLink>
           ))}

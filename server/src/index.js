@@ -28,6 +28,10 @@ app.use('/api/upload', require('./routes/upload'));
 // Module 3 — Booking System
 app.use('/api/bookings', require('./routes/bookings'));
 
+// Module 4 — Reviews, Ratings and Admin
+app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/admin', require('./routes/admin'));
+
 app.use(notFound);
 app.use(errorHandler);
 

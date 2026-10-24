@@ -11,6 +11,12 @@ import BookingForm from './pages/BookingForm';
 import MyBookings from './pages/MyBookings';
 import WorkerRequests from './pages/WorkerRequests';
 import WorkerJobs from './pages/WorkerJobs';
+import ReviewPage from './pages/ReviewPage';
+import WorkerReviews from './pages/WorkerReviews';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
+
+const guard = (roles, element) => <ProtectedRoute roles={roles}>{element}</ProtectedRoute>;
 
 export default function App() {
   return (
@@ -23,67 +29,25 @@ export default function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute roles={['customer', 'worker']}>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/profile" element={guard(['customer', 'worker'], <Profile />)} />
 
-            {/* Placeholders — replaced by Modules 2, 3 and 4 when merged */}
+            {/* Placeholder — replaced by Module 2 when merged */}
             <Route
               path="/dashboard"
-              element={
-                <ProtectedRoute roles={['customer']}>
-                  <ComingSoon title="Customer dashboard" module="Module 2" />
-                </ProtectedRoute>
-              }
+              element={guard(['customer'], <ComingSoon title="Customer dashboard" module="Module 2" />)}
             />
 
             {/* Module 3 — Booking System */}
-            <Route
-              path="/book/:workerId"
-              element={
-                <ProtectedRoute roles={['customer']}>
-                  <BookingForm />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/bookings"
-              element={
-                <ProtectedRoute roles={['customer']}>
-                  <MyBookings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/worker/dashboard"
-              element={
-                <ProtectedRoute roles={['worker']}>
-                  <WorkerRequests />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/worker/jobs"
-              element={
-                <ProtectedRoute roles={['worker']}>
-                  <WorkerJobs />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/book/:workerId" element={guard(['customer'], <BookingForm />)} />
+            <Route path="/bookings" element={guard(['customer'], <MyBookings />)} />
+            <Route path="/worker/dashboard" element={guard(['worker'], <WorkerRequests />)} />
+            <Route path="/worker/jobs" element={guard(['worker'], <WorkerJobs />)} />
 
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute roles={['admin']}>
-                  <ComingSoon title="Admin dashboard" module="Module 4" />
-                </ProtectedRoute>
-              }
-            />
+            {/* Module 4 — Reviews, Ratings and Admin */}
+            <Route path="/review/:bookingId" element={guard(['customer'], <ReviewPage />)} />
+            <Route path="/worker/reviews" element={guard(['worker'], <WorkerReviews />)} />
+            <Route path="/admin" element={guard(['admin'], <AdminDashboard />)} />
+            <Route path="/admin/users" element={guard(['admin'], <AdminUsers />)} />
 
             <Route path="*" element={<p className="p-8 text-center">Page not found</p>} />
           </Routes>
