@@ -88,8 +88,8 @@ export default function BookingForm() {
       </button>
       <h1 className="mt-2 font-display text-3xl sm:text-4xl text-navy">Book {worker.name}</h1>
 
-      <form onSubmit={handleSubmit} className="mt-6 grid gap-6 lg:grid-cols-[1fr_300px]">
-        <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="min-w-0 space-y-6">
           <section className="card p-5">
             <h2 className="font-semibold text-slate-900">1. Choose a service</h2>
             {worker.services?.length ? (

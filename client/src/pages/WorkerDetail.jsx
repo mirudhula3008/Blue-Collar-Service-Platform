@@ -47,7 +47,7 @@ export default function WorkerDetail() {
         ← Back to results
       </button>
 
-      <div className="mt-4 grid gap-6 md:grid-cols-[1fr_320px]">
+      <div className="mt-4 grid gap-6 md:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
           {/* Profile header */}
           <section className="card flex flex-col gap-5 p-6 sm:flex-row">
