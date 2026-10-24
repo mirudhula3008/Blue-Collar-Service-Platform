@@ -45,7 +45,7 @@
   /* Buttons (theme guide §3): primary, secondary, amber (booking), ghost */
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition
-      focus:outline-none focus-visible:shadow-glow disabled:pointer-events-none disabled:opacity-50;
+      focus:outline-none disabled:pointer-events-none disabled:opacity-50;
   }
   .btn-sm {
     @apply rounded-lg px-3.5 py-1.5 text-sm;
@@ -109,7 +109,7 @@
   /* Form controls (theme guide §8): blue focus glow ring */
   .input {
     @apply block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 placeholder:text-slate-400
-      transition focus:border-blue-600 focus:outline-none focus:shadow-glow disabled:bg-slate-50 disabled:text-slate-500;
+      transition focus:border-blue-600 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500;
   }
 
   /* Caption / eyebrow text (theme guide §2) */
@@ -125,4 +125,10 @@
 .leaflet-container {
   z-index: 0;
   font-family: inherit;
+}
+
+/* Blue focus glow ring (theme guide §8). Plain CSS so it doesn't depend on the Tailwind config. */
+.btn:focus-visible,
+.input:focus {
+  box-shadow: 0 0 0 4px rgba(51, 102, 255, 0.15);
 }
