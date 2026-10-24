@@ -6,7 +6,9 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
-import ComingSoon from './pages/ComingSoon';
+import CustomerDashboard from './pages/CustomerDashboard';
+import WorkerListing from './pages/WorkerListing';
+import WorkerDetail from './pages/WorkerDetail';
 import BookingForm from './pages/BookingForm';
 import MyBookings from './pages/MyBookings';
 import WorkerRequests from './pages/WorkerRequests';
@@ -31,11 +33,10 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={guard(['customer', 'worker'], <Profile />)} />
 
-            {/* Placeholder — replaced by Module 2 when merged */}
-            <Route
-              path="/dashboard"
-              element={guard(['customer'], <ComingSoon title="Customer dashboard" module="Module 2" />)}
-            />
+            {/* Module 2 — Service Discovery and Maps (browsing is public; booking needs login) */}
+            <Route path="/dashboard" element={<CustomerDashboard />} />
+            <Route path="/workers" element={<WorkerListing />} />
+            <Route path="/workers/:id" element={<WorkerDetail />} />
 
             {/* Module 3 — Booking System */}
             <Route path="/book/:workerId" element={guard(['customer'], <BookingForm />)} />

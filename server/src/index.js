@@ -25,6 +25,10 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/upload', require('./routes/upload'));
 
+// Module 2 — Service Discovery and Maps
+app.use('/api/categories', require('./routes/categories'));
+app.use('/api/workers', require('./routes/workers'));
+
 // Module 3 — Booking System
 app.use('/api/bookings', require('./routes/bookings'));
 

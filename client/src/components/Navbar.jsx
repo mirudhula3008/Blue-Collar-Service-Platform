@@ -35,7 +35,7 @@ export default function Navbar() {
     navigate('/');
   };
 
-  const links = user ? LINKS[user.role] || [] : [];
+  const links = user ? LINKS[user.role] || [] : [{ to: '/dashboard', label: 'Find workers' }];
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white">
