@@ -26,7 +26,8 @@ export default function WorkerListing() {
   }, []);
 
   useEffect(() => {
-    if (status === 'loading') return undefined;
+    // Wait for the first live fix instead of searching Chennai and then jumping.
+    if (status === 'locating') return undefined;
 
     // Debounce so dragging a slider doesn't fire a request per pixel.
     const timer = setTimeout(() => {
@@ -63,7 +64,7 @@ export default function WorkerListing() {
       <div className="mt-2 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h1 className="font-display text-3xl sm:text-4xl text-navy">{categoryName} near you</h1>
-          <LocationBanner {...location} onRetry={location.retry} />
+          <LocationBanner {...location} />
         </div>
         <p className="text-sm text-slate-500">
           {loading ? 'Searching…' : `${workers.length} worker${workers.length === 1 ? '' : 's'} within ${filters.radius} km`}

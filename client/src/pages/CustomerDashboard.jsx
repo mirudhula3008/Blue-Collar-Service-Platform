@@ -22,7 +22,7 @@ export default function CustomerDashboard() {
       <h1 className="font-display text-4xl text-navy sm:text-5xl">What do you need help with?</h1>
       <p className="mt-1 text-slate-600">Pick a service to see verified workers near you.</p>
       <div className="mt-3">
-        <LocationBanner {...location} onRetry={location.retry} />
+        <LocationBanner {...location} />
       </div>
 
       {error && <p className="mt-6 rounded-lg bg-red-50 p-4 text-red-700">{error}</p>}

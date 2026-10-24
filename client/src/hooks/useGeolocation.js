@@ -1,70 +1,105 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-// Used when the browser has no geolocation or the user denies permission.
-export const DEFAULT_LOCATION = { lat: 13.0827, lng: 80.2707, label: 'Chennai (default)' };
+// Everyone starts here. Live location is opt-in because desktop browsers often
+// guess the position from the IP address and can be hundreds of km off.
+export const DEFAULT_LOCATION = { lat: 13.0827, lng: 80.2707, label: 'Chennai' };
 
-const CACHE_KEY = 'lastLocation';
+const PREF_KEY = 'liveLocation'; // 'on' | absent
+const MIN_MOVE_METRES = 50; // ignore GPS jitter smaller than this
 
-function readCache() {
+function readPref() {
   try {
-    const raw = sessionStorage.getItem(CACHE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    return localStorage.getItem(PREF_KEY) === 'on';
   } catch {
-    return null;
+    return false;
   }
 }
 
-function writeCache(coords) {
+function writePref(on) {
   try {
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(coords));
+    if (on) localStorage.setItem(PREF_KEY, 'on');
+    else localStorage.removeItem(PREF_KEY);
   } catch {
-    // ignore
+    // storage unavailable — preference just won't persist
   }
+}
+
+// Haversine distance in metres.
+function distance(a, b) {
+  const R = 6371000;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
 }
 
 /**
- * Captures the user's position with the browser Geolocation API.
- * status: 'loading' | 'success' | 'denied' | 'unsupported' | 'error'
- * `coords` is always usable — falls back to DEFAULT_LOCATION on failure.
+ * Customer location for discovery.
+ * Defaults to Chennai. With live location on, follows the device position
+ * (watchPosition) and updates whenever it moves more than ~50 m.
+ *
+ * status: 'default' | 'locating' | 'live' | 'denied' | 'unsupported' | 'error'
+ * Returns { coords, status, error, live, setLive }. `coords` is always usable.
  */
 export default function useGeolocation() {
-  const cached = readCache();
-  const [coords, setCoords] = useState(cached || DEFAULT_LOCATION);
-  const [status, setStatus] = useState(cached ? 'success' : 'loading');
+  const [live, setLiveState] = useState(readPref);
+  const [coords, setCoords] = useState(DEFAULT_LOCATION);
+  const [status, setStatus] = useState(live ? 'locating' : 'default');
   const [error, setError] = useState(null);
+  const lastRef = useRef(null);
 
-  const locate = useCallback(() => {
-    if (!('geolocation' in navigator)) {
-      setStatus('unsupported');
-      setError('Your browser does not support location access.');
-      return;
+  const setLive = useCallback((on) => {
+    writePref(on);
+    setLiveState(on);
+    setError(null);
+  }, []);
+
+  useEffect(() => {
+    if (!live) {
+      lastRef.current = null;
+      setCoords(DEFAULT_LOCATION);
+      setStatus('default');
+      return undefined;
     }
-    setStatus('loading');
-    navigator.geolocation.getCurrentPosition(
+    if (!('geolocation' in navigator)) {
+      writePref(false);
+      setLiveState(false);
+      setStatus('unsupported');
+      setError('Your browser does not support location access. Showing Chennai.');
+      return undefined;
+    }
+
+    setStatus('locating');
+    const watchId = navigator.geolocation.watchPosition(
       (pos) => {
-        const next = { lat: pos.coords.latitude, lng: pos.coords.longitude, label: 'Your location' };
-        setCoords(next);
-        setStatus('success');
+        const next = { lat: pos.coords.latitude, lng: pos.coords.longitude, label: 'Live location' };
+        // Only publish meaningful moves so the worker list doesn't refetch on every GPS tick.
+        if (!lastRef.current || distance(lastRef.current, next) >= MIN_MOVE_METRES) {
+          lastRef.current = next;
+          setCoords(next);
+        }
+        setStatus('live');
         setError(null);
-        writeCache(next);
       },
       (err) => {
+        // Fall back to the default and switch live location off.
+        navigator.geolocation.clearWatch(watchId);
+        writePref(false);
+        setLiveState(false);
         setCoords(DEFAULT_LOCATION);
         setStatus(err.code === err.PERMISSION_DENIED ? 'denied' : 'error');
         setError(
           err.code === err.PERMISSION_DENIED
-            ? 'Location permission denied. Showing workers near Chennai.'
-            : 'Could not get your location. Showing workers near Chennai.'
+            ? 'Location permission is blocked. Allow it in your browser’s site settings to use live location. Showing Chennai.'
+            : 'Could not get your live location. Showing Chennai.'
         );
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5 * 60 * 1000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
     );
-  }, []);
 
-  useEffect(() => {
-    if (!cached) locate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [live]);
 
-  return { coords, status, error, retry: locate };
+  return { coords, status, error, live, setLive };
 }
