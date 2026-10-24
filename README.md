@@ -90,7 +90,7 @@ The app supports English, Tamil (தமிழ்), Hindi (हिन्दी) an
   `{{amount}}`. Missing keys fall back to English.
 - Every page is translated: customer, worker and admin. Dates and times use the selected language.
 - Common server messages (for example "Invalid email or password") are translated in the browser
-  (). Anything not in that list is shown as the server sent it.
+  (`client/src/api/serverMessages.js`). Anything not in that list is shown as the server sent it.
 - Text that people type (worker names, service names, bios, reviews) stays as written.
 
 ## Project structure
