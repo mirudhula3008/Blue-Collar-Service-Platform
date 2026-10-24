@@ -6,10 +6,12 @@ import { homePathFor, useAuth } from '../context/AuthContext';
 const LINKS = {
   customer: [
     { to: '/dashboard', label: 'Services' },
+    { to: '/bookings', label: 'My bookings' },
     { to: '/profile', label: 'Profile' },
   ],
   worker: [
     { to: '/worker/dashboard', label: 'Requests' },
+    { to: '/worker/jobs', label: 'Jobs' },
     { to: '/profile', label: 'Profile' },
   ],
   admin: [{ to: '/admin', label: 'Admin' }],

@@ -7,6 +7,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import ComingSoon from './pages/ComingSoon';
+import BookingForm from './pages/BookingForm';
+import MyBookings from './pages/MyBookings';
+import WorkerRequests from './pages/WorkerRequests';
+import WorkerJobs from './pages/WorkerJobs';
 
 export default function App() {
   return (
@@ -37,14 +41,41 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Module 3 — Booking System */}
+            <Route
+              path="/book/:workerId"
+              element={
+                <ProtectedRoute roles={['customer']}>
+                  <BookingForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/bookings"
+              element={
+                <ProtectedRoute roles={['customer']}>
+                  <MyBookings />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/worker/dashboard"
               element={
                 <ProtectedRoute roles={['worker']}>
-                  <ComingSoon title="Incoming requests" module="Module 3" />
+                  <WorkerRequests />
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/worker/jobs"
+              element={
+                <ProtectedRoute roles={['worker']}>
+                  <WorkerJobs />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/admin"
               element={
