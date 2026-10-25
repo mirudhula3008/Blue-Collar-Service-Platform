@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { LogOut, Menu, X } from 'lucide-react';
+import { LogOut, Menu, Wrench, X } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { homePathFor, useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -50,8 +50,19 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4">
-        <Link to={user ? homePathFor(user.role) : '/'} className="truncate text-xl font-bold tracking-tight" onClick={close}>
-          <span className="text-blue-600">{t('app.nameFirst')}</span> <span className="text-navy">{t('app.nameSecond')}</span>
+        <Link
+          to={user ? homePathFor(user.role) : '/'}
+          className="group flex items-center gap-2 text-2xl font-extrabold tracking-tight"
+          onClick={close}
+          aria-label={t('app.name')}
+        >
+          <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm transition group-hover:-rotate-12">
+            <Wrench size={20} strokeWidth={2.5} aria-hidden="true" />
+          </span>
+          <span>
+            <span className="text-navy">{t('app.nameFirst')}</span>
+            <span className="text-blue-600">{t('app.nameSecond')}</span>
+          </span>
         </Link>
 
         {/* Always-visible controls on small screens */}
